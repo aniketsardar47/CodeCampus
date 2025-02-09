@@ -1,8 +1,10 @@
+import React from 'react';
+import Login from './login/Login'
+
 function App() {
   return (
-    <div>
-      <h1>CodeCampus</h1>
-    </div>
+    <Login/>
+  
   );
 }
 
