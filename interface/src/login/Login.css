@@ -66,3 +66,7 @@
     color: white;
     font-size: 24px;
   }
+  .hover-area {
+    pointer-events: none;
+  }
+  

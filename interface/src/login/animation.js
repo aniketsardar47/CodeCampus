@@ -1,119 +1,185 @@
-import { TweenLite, Circ } from "gsap";
+import { gsap } from "gsap";
 
 export function initAnimation(canvasRef) {
-    console.log("✅ initAnimation function is running!");
+  console.log("✅ initAnimation function is running!");
 
-    if (!canvasRef || !canvasRef.current) {
-        console.log("❌ Canvas not found!");
-        return;
+  if (!canvasRef || !canvasRef.current) {
+    console.error("❌ Canvas not found!");
+    return;
+  }
+
+  const canvas = canvasRef.current;
+  const ctx = canvas.getContext("2d");
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
+
+  const points = [];
+  let lastHoveredPoint = null;
+
+  // ─── Create a Seamless Grid of Points ──────────────────────────────
+  for (let x = 0; x <= width; x += width / 10) {
+    for (let y = 0; y <= height; y += height / 10) {
+      const px = x + Math.random() * (width / 20) - width / 40;
+      const py = y + Math.random() * (height / 20) - height / 40;
+      const p = {
+        x: px,
+        y: py,
+        originX: px,
+        originY: py,
+        depth: Math.random() * 1.5 + 0.5, // Depth for 3D effect
+        closest: [],
+        active: 0.3,
+        moving: false,
+      };
+      points.push(p);
     }
+  }
 
-    let canvas = canvasRef.current;
-    let ctx = canvas.getContext("2d");
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    let points = [];
-    let target = { x: width / 2, y: height / 2 };
+  // ─── Find Nearest Points ─────────────────────────────
+  points.forEach((p1) => {
+    const sorted = [...points].sort((a, b) => getDistance(p1, a) - getDistance(p1, b));
+    p1.closest = sorted.slice(1, 6);
+  });
 
-    canvas.width = width;
-    canvas.height = height;
+  // ─── Define Circle Function (Fix for "Circle is not defined" Error) ───
+  function Circle(pos, radius, color) {
+    this.pos = pos;
+    this.radius = radius;
+    this.color = color;
+    this.active = 0.6;
+  }
 
-    // Create points
-    for (let x = 0; x < width; x += width / 15) {
-        for (let y = 0; y < height; y += height / 15) {
-            let px = x + Math.random() * width / 15;
-            let py = y + Math.random() * height / 15;
-            let p = { x: px, y: py, originX: px, originY: py, closest: [] };
-            points.push(p);
-        }
-    }
+  // ─── Create Circles for Each Point ───────────────────
+  points.forEach((p) => {
+    p.circle = new Circle(p, 6 + Math.random() * 3, "rgba(255,255,255,0.3)");
+    p.circle.active = 0.6;
+  });
 
-    // Find the closest points
-    for (let i = 0; i < points.length; i++) {
-        let closest = [];
-        let p1 = points[i];
-        for (let j = 0; j < points.length; j++) {
-            let p2 = points[j];
-            if (p1 !== p2) {
-                closest.push(p2);
-            }
-        }
-        closest.sort((a, b) => getDistance(p1, a) - getDistance(p1, b));
-        p1.closest = closest.slice(0, 5);
-    }
+  // ─── Animation Loop ──────────────────────────────────
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    points.forEach((p) => {
+      draw3DLines(p);
+      draw3DCircle(p);
+    });
+    requestAnimationFrame(animate);
+  }
 
-    // Create circles
-    for (let i in points) {
-        let c = new Circle(points[i], 6 + Math.random() * 3, "rgba(255,255,255,0.3)");
-        points[i].circle = c;
-    }
+  // ─── Draw 3D Lines Between Points ───────────────────────
+  function draw3DLines(p) {
+    if (p.active === 0) return;
+    p.closest.forEach((pt) => {
+      const gradient = ctx.createLinearGradient(p.x, p.y, pt.x, pt.y);
+      gradient.addColorStop(0, `rgba(255, 255, 255, ${p.active * p.depth})`);
+      gradient.addColorStop(1, `rgba(50, 150, 255, ${pt.active * pt.depth})`);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(pt.x, pt.y);
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = p.active * 5 * p.depth;
+      ctx.stroke();
+    });
+  }
 
-    function mouseMove(e) {
-        target.x = e.pageX;
-        target.y = e.pageY;
-    }
+  // ─── Draw 3D Circles ─────────────────────
+  function draw3DCircle(p) {
+    if (p.active === 0) return;
+    const radius = (p.circle.radius * p.active * p.depth) + 2;
+    const gradient = ctx.createRadialGradient(p.x, p.y, radius * 0.3, p.x, p.y, radius);
+    gradient.addColorStop(0, `rgba(255, 255, 255, 1)`);
+    gradient.addColorStop(0.5, `rgba(100, 150, 255, 0.8)`);
+    gradient.addColorStop(1, `rgba(20, 50, 150, 0.5)`);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+  }
 
-    function animate() {
-        ctx.clearRect(0, 0, width, height);
-        for (let i in points) {
-            let distance = getDistance(target, points[i]);
-            if (distance < 8000) {
-                points[i].active = 0.7;
-                points[i].circle.active = 1.5;
-            } else if (distance < 25000) {
-                points[i].active = 0.3;
-                points[i].circle.active = 0.6;
-            } else {
-                points[i].active = 0;
-                points[i].circle.active = 0;
-            }
-            drawLines(points[i]);
-            points[i].circle.draw();
-        }
-        requestAnimationFrame(animate);
-    }
+  // ─── Calculate Distance ──────────────────────────────
+  function getDistance(p1, p2) {
+    return (p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2;
+  }
 
-    function drawLines(p) {
-        if (!p.active) return;
-        for (let i in p.closest) {
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p.closest[i].x, p.closest[i].y);
-            ctx.strokeStyle = `rgba(156,217,249,${p.active})`;
-            ctx.lineWidth = p.active * 3;
-            ctx.stroke();
-        }
-    }
+  // ─── Mouse Hover Event ───────────────────────────────
+  function onMouseMove(event) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    const hoverRange = 150;
+    let nearestPoint = null;
+    let minDist = hoverRange;
+    points.forEach((p) => {
+      const distance = Math.sqrt(getDistance({ x: mouseX, y: mouseY }, p));
+      if (distance < minDist) {
+        nearestPoint = p;
+        minDist = distance;
+      }
+    });
 
-    function shiftPoint(p) {
-        TweenLite.to(p, 1 + Math.random(), {
-            x: p.originX - 50 + Math.random() * 100,
-            y: p.originY - 50 + Math.random() * 100,
-            ease: Circ.easeInOut,
-            onComplete: () => shiftPoint(p),
+    if (nearestPoint && nearestPoint !== lastHoveredPoint) {
+      lastHoveredPoint = nearestPoint;
+      gsap.to(nearestPoint, {
+        duration: 1,
+        x: nearestPoint.originX + (Math.random() * 80 - 40),
+        y: nearestPoint.originY + (Math.random() * 80 - 40),
+        ease: "power3.out",
+        overwrite: "auto",
+      });
+
+      gsap.to(nearestPoint.circle, {
+        duration: 0.6,
+        active: 1,
+        overwrite: "auto",
+      });
+
+      setTimeout(() => {
+        points.forEach((p) => {
+          if (p !== nearestPoint) {
+            gsap.to(p, {
+              duration: 1.2,
+              x: p.originX,
+              y: p.originY,
+              ease: "power2.out",
+              overwrite: "auto",
+            });
+
+            gsap.to(p.circle, {
+              duration: 1.2,
+              active: 0.6,
+              overwrite: "auto",
+            });
+          }
         });
+      }, 300);
     }
+  }
 
-    function getDistance(p1, p2) {
-        return Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2);
-    }
+  // ─── Reset on Mouse Leave ─────────────────────────────
+  function onMouseLeave() {
+    setTimeout(() => {
+      points.forEach((p) => {
+        gsap.to(p, {
+          duration: 1.5,
+          x: p.originX,
+          y: p.originY,
+          ease: "power2.out",
+          overwrite: "auto",
+        });
 
-    function Circle(pos, rad, color) {
-        this.pos = pos;
-        this.radius = rad;
-        this.color = color;
-        this.draw = function () {
-            if (!this.active) return;
-            ctx.beginPath();
-            ctx.arc(this.pos.x, this.pos.y, this.radius * this.active, 0, 2 * Math.PI);
-            ctx.fillStyle = `rgba(156,217,249,${this.active})`;
-            ctx.fill();
-        };
-    }
+        gsap.to(p.circle, {
+          duration: 1,
+          active: 0.6,
+          overwrite: "auto",
+        });
+      });
+    }, 500);
+  }
 
-    window.addEventListener("mousemove", mouseMove);
-    animate();
-    for (let i in points) {
-        shiftPoint(points[i]);
-    }
+  // ─── Attach Event Listeners ───────────────────────────
+  canvas.addEventListener("mousemove", onMouseMove);
+  canvas.addEventListener("mouseleave", onMouseLeave);
+
+  animate();
 }
