@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { initAnimation } from "./animation";
 import { Helmet } from "react-helmet-async"; 
 import "../login/Login.css"; // Ensure styles are applied
+import Form from "./Logbox";
 
 const AnimatedBackground = ({ children }) => {
   const canvasRef = useRef(null);
@@ -24,9 +25,7 @@ const AnimatedBackground = ({ children }) => {
 
         {/* Content Container */}
         <div className="absolute inset-0 flex flex-col items-center justify-start z-10">
-          <h1 className="main-title">
-            Crow777 Radio <span className="thin">Belief is the enemy of knowing.</span>
-          </h1>
+          <Form/>
           
           {/* Render children inside AnimatedBackground */}
           <div className="w-full">{children}</div>
