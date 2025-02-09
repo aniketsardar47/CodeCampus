@@ -13,14 +13,14 @@ export function initAnimation(canvasRef) {
   const width = window.innerWidth;
   const height = window.innerHeight;
   canvas.width = width;
-  canvas.height = height;
+  canvas.height = height+40;
 
   const points = [];
   let lastHoveredPoint = null;
 
   // ─── Create a Seamless Grid of Points ──────────────────────────────
-  for (let x = 0; x <= width; x += width / 10) {
-    for (let y = 0; y <= height; y += height / 10) {
+  for (let x = 60; x <= width; x += width / 10) {
+    for (let y = 50; y <= height; y += height / 10) {
       const px = x + Math.random() * (width / 20) - width / 40;
       const py = y + Math.random() * (height / 20) - height / 40;
       const p = {
@@ -30,7 +30,7 @@ export function initAnimation(canvasRef) {
         originY: py,
         depth: Math.random() * 1.5 + 0.5, // Depth for 3D effect
         closest: [],
-        active: 0.3,
+        active: 0.2,
         moving: false,
       };
       points.push(p);
