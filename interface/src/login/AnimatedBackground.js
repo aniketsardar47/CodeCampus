@@ -3,7 +3,7 @@ import { initAnimation } from "./animation";
 import { Helmet } from "react-helmet-async"; 
 import "../login/Login.css"; // Ensure styles are applied
 
-const AnimatedBackground = () => {
+const AnimatedBackground = ({ children }) => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -13,16 +13,25 @@ const AnimatedBackground = () => {
 
   return (
     <>
-    <Helmet>
+      <Helmet>
         <title>CodeCampus</title>
       </Helmet>
-    <div id="large-header" className="large-header">
-      <div className="hover-area"></div>
-      <canvas ref={canvasRef} id="demo-canvas"></canvas>
-      <h1 className="main-title">
-        Crow777 Radio <span className="thin">Belief is the enemy of knowing.</span>
-      </h1>
-    </div>
+
+      {/* Background Container */}
+      <div id="large-header" className="large-header relative w-full h-screen">
+        <div className="hover-area"></div>
+        <canvas ref={canvasRef} id="demo-canvas"></canvas>
+
+        {/* Content Container */}
+        <div className="absolute inset-0 flex flex-col items-center justify-start z-10">
+          <h1 className="main-title">
+            Crow777 Radio <span className="thin">Belief is the enemy of knowing.</span>
+          </h1>
+          
+          {/* Render children inside AnimatedBackground */}
+          <div className="w-full">{children}</div>
+        </div>
+      </div>
     </>
   );
 };

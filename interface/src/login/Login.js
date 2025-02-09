@@ -1,12 +1,20 @@
 import React from "react";
 import AnimatedBackground from "./AnimatedBackground";
+import Header from "./Header";
 
 function Login() {
   return (
-    <div className="App">
-      <AnimatedBackground />
-    </div>
+    <AnimatedBackground>
+      {/* Transparent Header on Animated Background */}
+      <Header />
+
+      {/* Main Content (Below Transparent Header) */}
+      <div>
+        Login Page Content Here
+      </div>
+    </AnimatedBackground>
   );
 }
 
 export default Login;
+
