@@ -1,6 +1,7 @@
 import React from "react";
+import "./Login.css"; 
 import AnimatedBackground from "./AnimatedBackground";
-import Header from "./Header";
+import Header from "./Header"
 
 function Login() {
   return (
