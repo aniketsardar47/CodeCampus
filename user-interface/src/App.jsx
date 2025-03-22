@@ -1,22 +1,17 @@
-import { Heading } from '@chakra-ui/react'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import './App.css'
-import Home from './pages/Home/Home'
-import Stud_Form from './Login_Page/Login_Panel'
+import './App.css';
+import MainEditor from './pages/Editor/Main_Editor';
 
 function App() {
-  
   return (
     <>
-       <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Stud_Form />} />
-        <Route path="/dashboard" element={<Home />} />
-      </Routes>
-    </BrowserRouter>
-       
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<MainEditor />} />
+        </Routes>
+      </BrowserRouter>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
