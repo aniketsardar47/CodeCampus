@@ -82,10 +82,9 @@ const MainEditor = () => {
       overflow="hidden"
       position="relative"
     >
-      {/* Navbar */}
       <Navbar />
 
-      {/* Full-screen mode */}
+     
       <Flex
         direction="column"
         height={isFullScreen ? "100vh" : "calc(100vh - 80px)"}
@@ -98,7 +97,7 @@ const MainEditor = () => {
       >
         <Flex flex="1" overflow="hidden">
           
-          {/* Problem Statement (Hidden in Full-Screen Mode) */}
+         
           {!isFullScreen && (
             <Box width="35%" p={4} borderRight="1px solid #2d2d2d" overflowY="auto">
               <Heading size="sm" mb={4}>Problem Statement</Heading>
@@ -120,10 +119,8 @@ const MainEditor = () => {
             </Box>
           )}
 
-          {/* Code Editor and Output */}
           <Box width={isFullScreen ? "100%" : "65%"} p={4} display="flex" flexDirection="column">
             
-            {/* Language Selector with Timer and Full-screen Button */}
             <Flex justify="space-between" align="center" mb={2}>
               <Flex align="center" gap={2}>
                 <Select
@@ -142,9 +139,7 @@ const MainEditor = () => {
                 </Select>
               </Flex>
 
-              {/* Timer and Full-screen Buttons */}
               <Flex align="center" gap={2}>
-                {/* Timer with Clock Icon */}
                 <IconButton
                   icon={<FiClock />}
                   aria-label="Timer"
@@ -154,7 +149,6 @@ const MainEditor = () => {
                 />
                 <Text fontSize="sm" color="gray.300">{formatTime(seconds)}</Text>
 
-                {/* Full-screen Toggle Button */}
                 <IconButton
                   icon={isFullScreen ? <FiMinimize /> : <FiMaximize />}
                   aria-label="Full-screen"
@@ -180,7 +174,6 @@ const MainEditor = () => {
               />
             </Box>
 
-            {/* Execution Status Output */}
             <Box mt={4} p={2} bg="gray.800" color="gray.100" borderRadius="md" overflowY="auto" height="100px">
               <Text fontSize="sm" color={output.includes("Error") ? "red.400" : "green.400"}>
                 {output || "Run the code to see the output..."}
@@ -189,7 +182,6 @@ const MainEditor = () => {
           </Box>
         </Flex>
 
-        {/* Sticky Footer with Buttons */}
         <Flex
           bg="gray.800"
           p={4}
