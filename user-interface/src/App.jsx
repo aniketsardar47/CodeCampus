@@ -1,11 +1,12 @@
 import { Heading } from '@chakra-ui/react'
 import './App.css'
+import Home from './pages/Home/Home'
 
 function App() {
   
   return (
     <>
-     <Heading p={10}>CodeCampus</Heading>
+        <Home/>
     </>
   )
 }
