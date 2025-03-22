@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { Box, Flex, Button, Textarea, Heading, Text, Select } from "@chakra-ui/react";
+import { Box, Flex, Button, Textarea, Heading, Text, Select, Textarea as CodeOutput } from "@chakra-ui/react";
 import MonacoEditor from "@monaco-editor/react";
 import Navbar from "./Navbar";  // ✅ Import the Navbar
 
 const MainEditor = () => {
   const [code, setCode] = useState(`console.log('Hello, World!');`);
   const [language, setLanguage] = useState("javascript");
+  const [output, setOutput] = useState("");
+  const [hasRun, setHasRun] = useState(false);
 
   const handleEditorChange = (value) => {
     setCode(value);
@@ -13,6 +15,32 @@ const MainEditor = () => {
 
   const handleLanguageChange = (e) => {
     setLanguage(e.target.value);
+  };
+
+  // Simulated code execution function
+  const runCode = () => {
+    try {
+      // Simulate execution status
+      if (code.trim() === "") {
+        throw new Error("No code to run!");
+      }
+
+      // Mock execution output
+      const simulatedOutput = `Execution Successful!\nLanguage: ${language}`;
+      setOutput(simulatedOutput);
+      setHasRun(true);
+    } catch (error) {
+      setOutput(`Error: ${error.message}`);
+      setHasRun(false);
+    }
+  };
+
+  const submitCode = () => {
+    if (!hasRun) {
+      alert("Please run the code before submitting!");
+      return;
+    }
+    alert(`Submit Successful!`);
   };
 
   return (
@@ -69,7 +97,7 @@ const MainEditor = () => {
 
             <Box flex="1" overflow="auto">
               <MonacoEditor
-                height="100%"
+                height="400px"
                 language={language}
                 theme="vs-dark"
                 value={code}
@@ -80,6 +108,13 @@ const MainEditor = () => {
                   wordWrap: "on",
                 }}
               />
+            </Box>
+
+            {/* Execution Status Output */}
+            <Box mt={4} p={2} bg="gray.800" color="gray.100" borderRadius="md" overflowY="auto" height="100px">
+              <Text fontSize="sm" color={output.includes("Error") ? "red.400" : "green.400"}>
+                {output || "Run the code to see the output..."}
+              </Text>
             </Box>
           </Box>
         </Flex>
@@ -96,11 +131,11 @@ const MainEditor = () => {
           zIndex="1000"
           gap={4}
         >
-          <Button colorScheme="green" px={6} onClick={() => alert(`Code executed in ${language}!`)}>
+          <Button colorScheme="green" px={6} onClick={runCode}>
             Run
           </Button>
-          <Button colorScheme="orange" px={6} onClick={() => alert(`Code submitted in ${language}!`)}>
-            Submit Code
+          <Button colorScheme="orange" px={6} onClick={submitCode} isDisabled={!hasRun}>
+            Submit
           </Button>
         </Flex>
 
