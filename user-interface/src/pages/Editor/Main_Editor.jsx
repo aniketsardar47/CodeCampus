@@ -3,12 +3,14 @@ import { Box, Flex, Button, Textarea, Heading, Text, Select, IconButton } from "
 import { FiClock, FiMaximize, FiMinimize } from "react-icons/fi";  // ✅ Timer & Full-Screen Icons
 import MonacoEditor from "@monaco-editor/react";
 import Navbar from "./Navbar";  // ✅ Import Navbar
+import Submit from "./Submit";   // ✅ Import Submit component
 
 const MainEditor = () => {
   const [code, setCode] = useState(`console.log('Hello, World!');`);
   const [language, setLanguage] = useState("javascript");
   const [output, setOutput] = useState("");
   const [hasRun, setHasRun] = useState(false);
+  const [response, setResponse] = useState("");  // ✅ Added state for response
 
   // Timer states
   const [isRunning, setIsRunning] = useState(false);
@@ -47,6 +49,12 @@ const MainEditor = () => {
     setLanguage(e.target.value);
   };
 
+  const handleResponse = (res) => {
+    console.log("Response from Submit:", res);
+    setResponse(res);  // ✅ Store the response in state
+    setOutput(res);
+  };
+
   const runCode = () => {
     try {
       if (code.trim() === "") {
@@ -67,7 +75,7 @@ const MainEditor = () => {
       alert("Please run the code before submitting!");
       return;
     }
-    alert(`Submit Successful!`);
+    alert(`Submitting Code`);
   };
 
   const toggleFullScreen = () => {
@@ -84,7 +92,6 @@ const MainEditor = () => {
     >
       <Navbar />
 
-     
       <Flex
         direction="column"
         height={isFullScreen ? "100vh" : "calc(100vh - 80px)"}
@@ -96,8 +103,6 @@ const MainEditor = () => {
         bg="gray.900"
       >
         <Flex flex="1" overflow="hidden">
-          
-         
           {!isFullScreen && (
             <Box width="35%" p={4} borderRight="1px solid #2d2d2d" overflowY="auto">
               <Heading size="sm" mb={4}>Problem Statement</Heading>
@@ -120,7 +125,6 @@ const MainEditor = () => {
           )}
 
           <Box width={isFullScreen ? "100%" : "65%"} p={4} display="flex" flexDirection="column">
-            
             <Flex justify="space-between" align="center" mb={2}>
               <Flex align="center" gap={2}>
                 <Select
@@ -179,6 +183,11 @@ const MainEditor = () => {
                 {output || "Run the code to see the output..."}
               </Text>
             </Box>
+
+            {/* ✅ Render the Submit component here */}
+           
+
+            
           </Box>
         </Flex>
 
@@ -188,7 +197,6 @@ const MainEditor = () => {
           justify="center"
           align="center"
           boxShadow="md"
-          position={isFullScreen ? "fixed" : "sticky"}
           bottom="0"
           zIndex="1000"
           gap={4}
@@ -197,11 +205,8 @@ const MainEditor = () => {
           <Button colorScheme="green" px={6} onClick={runCode}>
             Run
           </Button>
-          <Button colorScheme="orange" px={6} onClick={submitCode} isDisabled={!hasRun}>
-            Submit
-          </Button>
+          <Submit code={code} language={language} onResponse={handleResponse} />
         </Flex>
-
       </Flex>
     </Box>
   );
