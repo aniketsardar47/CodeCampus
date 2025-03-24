@@ -4,6 +4,7 @@ import './App.css'
 import Home from './pages/Home';
 import Login from './pages/Authentication/Login';
 import ProtectedRoute from './utils/ProtectedRoutes';
+import Register from './pages/Authentication/Register';
 
 function App() {
   
@@ -11,6 +12,7 @@ function App() {
    <BrowserRouter>
    <Routes>
      <Route element={<Login/>} path='/login'/>
+     <Route element={<Register/>} path='/signup'/>     
 
    <Route element={<ProtectedRoute/>}>
      <Route element={<Home/>} path='/home'/>
