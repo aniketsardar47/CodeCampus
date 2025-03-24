@@ -1,3 +1,4 @@
+import { Heading } from '@chakra-ui/react'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css'
 import Home from './pages/Home';
@@ -6,6 +7,7 @@ import ProtectedRoute from './utils/ProtectedRoutes';
 import Register from './pages/Authentication/Register';
 
 function App() {
+  
   return (
    <BrowserRouter>
    <Routes>
@@ -21,4 +23,4 @@ function App() {
   )
 }
 
-export default App;
+export default App
