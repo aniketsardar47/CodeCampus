@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import PropTypes from 'prop-ts';
 import { Button, Box } from '@chakra-ui/react';
 
 const Submit = ({ code, onResponse }) => {

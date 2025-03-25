@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Box, Flex, Button, Textarea, Heading, Text, Select, IconButton } from "@chakra-ui/react";
 import { FiClock, FiMaximize, FiMinimize } from "react-icons/fi";  // ✅ Timer & Full-Screen Icons
 import MonacoEditor from "@monaco-editor/react";
-import Navbar from "./Navbar";  // ✅ Import Navbar
+import Navbar from "./navbar";  // ✅ Import Navbar
 import Submit from "./Submit";   // ✅ Import Submit component
 
 const MainEditor = () => {

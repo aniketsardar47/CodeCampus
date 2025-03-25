@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Login from './pages/Authentication/Login';
 import ProtectedRoute from './utils/ProtectedRoutes';
 import Register from './pages/Authentication/Register';
+import MainEditor from "./pages/Editor/Main_Editor";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
 
    <Route element={<ProtectedRoute/>}>
      <Route element={<Home/>} path='/home'/>
+     <Route element={<MainEditor/>} path="/home/editor"/>
    </Route>
    
    </Routes>

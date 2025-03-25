@@ -15,6 +15,7 @@ export default function Home() {
     <div>
         Home <br/>
         <Button onClick={handleLogout}>Log out</Button>
+        <Button onClick={()=>navigate('/home/editor')}>Go to editor</Button>
     </div>
   )
 }
