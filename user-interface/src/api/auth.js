@@ -17,10 +17,15 @@ export const register = async (userData) => {
 };
 
 export const login = async (userData) => {
-    const response = await axios.post(`${API_URL}/login`,userData,{
-        headers: {
-            'Content-Type': 'application/json'  
-        }
-    });
-    return response.data;
+    try{
+        const response = await axios.post(`${API_URL}/login`,userData,{
+            headers: {
+                'Content-Type': 'application/json'  
+            }
+        });
+        return response.data;
+    }catch(error){
+        console.error('Login failed:', error.response?.data || error.message);
+        throw error.response?.data || { message: 'Server error' };
+    }
 };

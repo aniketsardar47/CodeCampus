@@ -13,7 +13,6 @@ function Register() {
 
     const navigate = useNavigate();
     const handleSubmit = async (e)=>{
-        console.log({name,email,pass,role});
         e.preventDefault();
         try{
             await register({name,email,password,role});
