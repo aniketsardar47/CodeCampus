@@ -14,7 +14,7 @@ const Submit = ({ code, onResponse }) => {
 
     try {
       // Determine language from code (simple detection)
-      let language = 'javascript';
+      let language = 'java';
       if (code.includes('public class') || code.includes('System.out.println')) {
         language = 'java';
       } else if (code.includes('def ') || code.includes('print(')) {
