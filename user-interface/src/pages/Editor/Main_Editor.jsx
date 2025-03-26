@@ -3,7 +3,8 @@ import { Box, Flex, Button, Textarea, Heading, Text, Select, IconButton } from "
 import { FiClock, FiMaximize, FiMinimize } from "react-icons/fi";  // ✅ Timer & Full-Screen Icons
 import MonacoEditor from "@monaco-editor/react";
 import Navbar from "./navbar";  // ✅ Import Navbar
-import Submit from "./Submit";   // ✅ Import Submit component
+import Submit from "@/pages/Editor/Submit.jsx";
+  // ✅ Import Submit component
 
 const MainEditor = () => {
   const [code, setCode] = useState(`console.log('Hello, World!');`);
@@ -111,7 +112,7 @@ const MainEditor = () => {
                 the LCA (Lowest Common Ancestor) of three nodes: N1, N2, and N3.
               </Text>
               <Textarea
-                isReadOnly
+                readOnly
                 value={`For example: LCA of (7, 8, 10) is 1`}
                 size="sm"
                 height="70%"
@@ -127,20 +128,21 @@ const MainEditor = () => {
           <Box width={isFullScreen ? "100%" : "65%"} p={4} display="flex" flexDirection="column">
             <Flex justify="space-between" align="center" mb={2}>
               <Flex align="center" gap={2}>
-                <Select
-                  value={language}
-                  onChange={handleLanguageChange}
-                  width="200px"
-                  bg="gray.800"
-                  color="gray.300"
-                  borderColor="gray.700"
-                >
-                  <option value="javascript">JavaScript</option>
-                  <option value="python">Python</option>
-                  <option value="java">Java</option>
-                  <option value="cpp">C++</option>
-                  <option value="c">C</option>
-                </Select>
+                {/*<Select*/}
+                {/*  value={language}*/}
+                {/*  onChange={handleLanguageChange}*/}
+                {/*  width="200px"*/}
+                {/*  bg="gray.800"*/}
+                {/*  color="gray.300"*/}
+                {/*  borderColor="gray.700"*/}
+                {/*>*/}
+                {/*  <option value="javascript">JavaScript</option>*/}
+                {/*  <option value="python">Python</option>*/}
+                {/*  <option value="java">Java</option>*/}
+                {/*  <option value="cpp">C++</option>*/}
+                {/*  <option value="c">C</option>*/}
+                {/*</Select>*/}
+
               </Flex>
 
               <Flex align="center" gap={2}>
