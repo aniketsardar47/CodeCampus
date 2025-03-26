@@ -5,6 +5,7 @@ import Login from './pages/Authentication/Login';
 import ProtectedRoute from './utils/ProtectedRoutes';
 import Register from './pages/Authentication/Register';
 import MainEditor from "./pages/Editor/Main_Editor";
+import CodeEditor from "@/pages/Editor/editor-pages/CodeEditor.jsx";
 
 function App() {
   return (
@@ -12,10 +13,10 @@ function App() {
    <Routes>
      <Route element={<Login/>} path='/login'/>
      <Route element={<Register/>} path='/signup'/>     
+     <Route element={<MainEditor/>} path="/editor"/>
 
    <Route element={<ProtectedRoute/>}>
      <Route element={<Home/>} path='/home'/>
-     <Route element={<MainEditor/>} path="/home/editor"/>
    </Route>
    
    </Routes>
