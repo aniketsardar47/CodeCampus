@@ -1,4 +1,5 @@
 import axios from "axios";
+import {UseEffect } from "react";
 import { LANGUAGE_VERSIONS } from "./constants.jsx";
 
 const Api = axios.create({
@@ -10,8 +11,20 @@ const Api = axios.create({
   }
 });
 
-export const executeCode = async (language, sourceCode, input = "") => {
+export const fetchProblemById = async (id) => {
   try {
+    const response = await axios.get(`http://localhost:2000/CodeExecution/TC${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching problem:", error);
+    return null;
+  }
+};
+
+
+export const executeCode = async (language, sourceCode, input = "2 3") => {
+    fetchProblemById(language, sourceCode, input);
+    try {
     if (!LANGUAGE_VERSIONS[language]) {
       throw new Error(`Unsupported language: ${language}`);
     }

@@ -6,7 +6,7 @@ const Output = ({ output, isError, isLoading }) => {
     }
 
     if (!output || output === "No output to display") {
-        return <Text color="gray.500">No output to display</Text>;
+        return <Text color="gray.500">Run the Code First</Text>;
     }
 
     // Handle string output

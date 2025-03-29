@@ -4,15 +4,19 @@ import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   return (
-    <Box bg="gray.800" px={8} py={4} color="white">
+    <Box bg="gray.800" px={8} py={5} color="white">
       <Flex align="center">
         <Heading size="md">Code Editor</Heading>
         <Spacer />
         <Flex gap={4}>
           <Link to="/">
-            <Button colorScheme="teal" size="sm">Editor</Button>
+            <Button padding={2}
+                    colorPalette="grey"
+                    variant="outline" >Home</Button>
           </Link>
-          <Button colorScheme="red" size="sm">Sign Out</Button>
+          <Button padding={2}
+                  colorPalette="grey"
+                  variant="outline">Sign Out</Button>
         </Flex>
       </Flex>
     </Box>
