@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Container, Center, Text } from "@chakra-ui/react";
+import { Container, Center, Text ,Select , Portal ,createListCollection} from "@chakra-ui/react";
 import React, { useState } from "react";
 import { register } from '@/api/auth';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,7 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPass] = useState("");
   const [role, setRole] = useState("Student");
+  const [branch,setBranch] = useState("CS");
 
   const [emailerr, setEmailerr] = useState("");
   const [showpass, setShowpass] = useState(true);
@@ -29,7 +30,9 @@ function Register() {
     e.preventDefault();
     if (emailerr) return
     try {
-      await register({ name, email, password, role });
+      const department = branch[0];
+      console.log(department);
+      await register({ name, email, password, role , department , Lab: null });
       alert("Registration successfull!");
       navigate('/login');
     } catch (error) {
@@ -37,6 +40,14 @@ function Register() {
       console.log("Registration error: ", error);
     }
   }
+
+  const frameworks = createListCollection({
+    items : [
+    { label: "Comp", value: "CS" },
+    { label: "IT", value: "IT" },
+    { label: "AIDS", value: "AIDS" },
+    ]
+  })
 
   return (
     <Container maxWidth={'100vw'}>
@@ -71,6 +82,41 @@ function Register() {
               }} placeholder="Enter your Email" />
             </div>
             {emailerr && <Text color={'red'}>{emailerr}</Text>}
+
+            <div className="flex-column">
+              <label>Branch</label>
+            </div>
+
+            <div className="inputForm" style={{padding:"0px"}}>
+            <Select.Root collection={frameworks} size="lg" width="100%"
+              border={'none'}
+              value={branch}
+              onValueChange={(e)=>setBranch(e.value)}
+
+            >
+      <Select.HiddenSelect />
+      <Select.Control>
+        <Select.Trigger p={'5px'}>
+          <Select.ValueText placeholder="Select your branch" />
+        </Select.Trigger>
+        <Select.IndicatorGroup pr={'5px'}>
+          <Select.Indicator />
+        </Select.IndicatorGroup>
+      </Select.Control>
+      <Portal>
+        <Select.Positioner>
+          <Select.Content p={'10px'}>
+            {frameworks.items.map((framework) => (
+              <Select.Item item={framework} key={framework.value}>
+                {framework.label}
+                <Select.ItemIndicator />
+              </Select.Item>
+            ))}
+          </Select.Content>
+        </Select.Positioner>
+      </Portal>
+    </Select.Root>
+            </div>
 
             <div className="flex-column">
               <label>Password </label>

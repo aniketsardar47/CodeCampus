@@ -14,9 +14,7 @@ function App() {
    <Routes>
      <Route element={<Login/>} path='/login'/>
      <Route element={<Register/>} path='/signup'/>     
-     <Route element={<MainEditor/>} path="/editor"/>
-
-
+     
     {/* Student Routes */}
    <Route element={<ProtectedRoute allowedRole={['Student']}/>}>
      <Route element={<StudDash/>} path='/student'/>

@@ -5,8 +5,10 @@ const userSchema = new mongoose.Schema(
        name : {type : String , required : true},
        email : {type : String, required : true, unique : true},
        password : {type : String, required : true},
-       role: {type: String, enum: ["Student","Teacher"]}
-    }
+       role: {type: String, enum: ["Student","Teacher"]},
+       department: {type:String,enum: ["CS","IT","AIDS"],required:true},
+       Lab: {type:String,enum:["DSL","DSAL","PYTHON","OOP","JAVA"],default:null}
+    },{timestamps:true}
 );
 
 module.exports = mongoose.model("User",userSchema);

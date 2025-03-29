@@ -13,7 +13,7 @@ export default function TeachDash() {
 
   return (
     <div>
-      <Heading>Teacher Dashboard</Heading>
+      <Heading>Teacher   Dashboard</Heading>
         <Button w={100} onClick={handleLogout} >Log out</Button>
       
     </div>
