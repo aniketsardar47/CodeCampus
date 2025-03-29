@@ -18,22 +18,24 @@ const ACTIVE_COLOR = "blue.400";
 
 const LanguageSelector = ({ language, onSelect }) => {
   return (
-    <Box ml={2} mb={4}>
-      <Text mb={2} fontSize="lg">
+    <Box ml={2} mb={4} >
+      <Text mb={2} fontSize="lg" gap={10}>
         Language:
       </Text>
       <Menu isLazy>
-        <MenuButton as={Button}>{language}</MenuButton>
-        <MenuList bg="#110c1b">
+        <MenuButton colorPalette="grey"
+                    variant="surface" padding={2} as={Button}>{language}</MenuButton>
+        <MenuList bg="#110c1b" padding={2}>
           {languages.map(([lang, version]) => (
             <MenuItem
               key={lang}
-              color={lang === language ? ACTIVE_COLOR : ""}
+              color={lang === language ? ACTIVE_COLOR : "grey"}
               bg={lang === language ? "gray.900" : "transparent"}
               _hover={{
                 color: ACTIVE_COLOR,
-                bg: "gray.900",
+                bg: "grey.200",
               }}
+              padding={2}
               onClick={() => onSelect(lang)}
             >
               {lang}
