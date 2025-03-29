@@ -3,12 +3,13 @@ import { Container, Center } from "@chakra-ui/react";
 import React, { useContext, useState } from "react";
 import { login } from "@/api/auth";
 import AuthContext from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { replace, useNavigate } from "react-router-dom";
 
 function Login() {
   const { login: setLogin } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showpass,setShowpass] = useState(true);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -16,7 +17,14 @@ function Login() {
     try {
       const data = await login({ email, password });
       setLogin(data.token);
-      navigate("/home");
+      
+      if(data.role == "student" || data.role == "Student"){
+        navigate('/student',{replace: true});
+      }
+      else if(data.role == "teacher" || data.role == "Teacher"){
+        navigate('/teacher',{replace:true});
+      }
+
       alert("Login Successful");
     } catch (error) {
       console.error("Login error:", error);
@@ -43,13 +51,29 @@ function Login() {
         <div className="flex-column">
           <label>Password </label>
         </div>
-        <div className="inputForm">
+        <div className="inputForm" style={{padding:"10px"}}>
           <svg height={20} viewBox="-64 0 512 512" width={20} xmlns="http://www.w3.org/2000/svg">
             <path d="m336 512h-288c-26.453125 0-48-21.523438-48-48v-224c0-26.476562 21.546875-48 48-48h288c26.453125 0 48 21.523438 48 48v224c0 26.476562-21.546875 48-48 48zm-288-288c-8.8125 0-16 7.167969-16 16v224c0 8.832031 7.1875 16 16 16h288c8.8125 0 16-7.167969 16-16v-224c0-8.832031-7.1875-16-16-16zm0 0" />
             <path d="m304 224c-8.832031 0-16-7.167969-16-16v-80c0-52.929688-43.070312-96-96-96s-96 43.070312-96 96v80c0 8.832031-7.167969 16-16 16s-16-7.167969-16-16v-80c0-70.59375 57.40625-128 128-128s128 57.40625 128 128v80c0 8.832031-7.167969 16-16 16zm0 0" />
           </svg>
           <input  className="input" value={password}
-              onChange={(e) => setPassword(e.target.value)} required type='password' placeholder="Enter your Password" />
+              onChange={(e) => setPassword(e.target.value)} required type={showpass? "password" : "text"} placeholder="Enter your Password" />
+          <svg
+                onClick={() => setShowpass(!showpass)}
+                className="eye-icon"
+                height={20}
+                
+                viewBox="0 0 24 24"
+                width={20}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="white"
+              >
+                {showpass ? (
+                  <path d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                ) : (
+                  <path d="M12 4.5c-7.72 0-11.71 7.01-11.97 7.5.26.49 4.25 7.5 11.97 7.5s11.71-7.01 11.97-7.5c-.26-.49-4.25-7.5-11.97-7.5zm0 13c-4.13 0-7.5-3.37-7.5-7.5s3.37-7.5 7.5-7.5 7.5 3.37 7.5 7.5-3.37 7.5-7.5 7.5zm0-13c-3.04 0-5.5 2.46-5.5 5.5s2.46 5.5 5.5 5.5 5.5-2.46 5.5-5.5-2.46-5.5-5.5-5.5zm0 9c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" />
+                )}
+              </svg>
         </div>
         <div className="flex-row">
 

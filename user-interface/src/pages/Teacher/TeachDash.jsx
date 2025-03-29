@@ -1,8 +1,8 @@
-import { Button } from '@chakra-ui/react';
+import { Button, Heading } from '@chakra-ui/react';
 import React from 'react'
 import { useNavigate } from 'react-router-dom';
 
-export default function Home() {
+export default function TeachDash() {
 
     const navigate = useNavigate();
 
@@ -13,9 +13,9 @@ export default function Home() {
 
   return (
     <div>
-        Home <br/>
-        <Button onClick={handleLogout}>Log out</Button>
-        <Button onClick={()=>navigate('/home/editor')}>Go to editor</Button>
+      <Heading>Teacher Dashboard</Heading>
+        <Button w={100} onClick={handleLogout} >Log out</Button>
+      
     </div>
   )
 }

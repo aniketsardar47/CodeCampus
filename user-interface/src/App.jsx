@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css'
-import Home from './pages/Home';
 import Login from './pages/Authentication/Login';
 import ProtectedRoute from './utils/ProtectedRoutes';
 import Register from './pages/Authentication/Register';
+import StudDash from "./pages/Student/StudDash";
+import TeachDash from "./pages/Teacher/TeachDash";
+
 
 
 function App() {
@@ -13,9 +15,15 @@ function App() {
      <Route element={<Login/>} path='/login'/>
      <Route element={<Register/>} path='/signup'/>     
 
-   <Route element={<ProtectedRoute/>}>
-     <Route element={<Home/>} path='/home'/>
-     
+
+    {/* Student Routes */}
+   <Route element={<ProtectedRoute allowedRole={['Student']}/>}>
+     <Route element={<StudDash/>} path='/student'/>
+   </Route>
+
+     {/* Teacher Routes */}
+     <Route element={<ProtectedRoute allowedRole={['Teacher']}/>}>
+     <Route element={<TeachDash/>} path='/teacher'/>
    </Route>
    
    </Routes>
