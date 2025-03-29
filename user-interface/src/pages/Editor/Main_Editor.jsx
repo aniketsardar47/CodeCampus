@@ -19,16 +19,20 @@ import {
   Tabs,
 } from "@chakra-ui/tabs"
 
+import { CiAlarmOn,CiAlarmOff } from "react-icons/ci";
+
 import {
   useToast,
 } from "@chakra-ui/toast";
-import { FiClock, FiMaximize, FiMinimize, FiPlay, FiSave } from "react-icons/fi";
+import { MdTimer,MdTimerOff  } from "react-icons/md";
+import {  FiMaximize, FiMinimize, FiPlay, FiSave } from "react-icons/fi";
 import MonacoEditor from "@monaco-editor/react";
 import Navbar from "./navbar";
 import LanguageSelector from "./editor-pages/LanguageSelector";
 import { CODE_SNIPPETS } from "./constants.jsx";
 import Output from "./editor-pages/Output";
 import { executeCode, submitCode } from "./api.jsx";
+import ResultPanel from "./editor-pages/ResultPanel";
 
 const MainEditor = () => {
   const editorRef = useRef();
@@ -43,6 +47,8 @@ const MainEditor = () => {
   const [isExecuting, setIsExecuting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toast = useToast();
+  const [timerstatus, setTimerstatus] = useState(false);
+  const [status, setStatus] = useState("run");
 
   useEffect(() => {
     let timer;
@@ -67,6 +73,7 @@ const MainEditor = () => {
 
   const toggleTimer = () => {
     const action = isRunning ? "paused" : "started";
+    setTimerstatus(!timerstatus);
     setIsRunning((prev) => !prev);
     showToast("Timer", `Timer ${action}`, "info");
   };
@@ -105,6 +112,7 @@ const MainEditor = () => {
     }
 
     setIsExecuting(true);
+    setStatus("run")
     setOutput("Running code...");
     setIsError(false);
 
@@ -134,7 +142,7 @@ const MainEditor = () => {
       showToast("Error", "Editor is not ready", "error");
       return;
     }
-
+    setStatus("submit")
     setIsSubmitting(true);
     setExecutionResult("Running tests...");
     setIsError(false);
@@ -174,7 +182,7 @@ const MainEditor = () => {
         <Flex direction="column" height={isFullScreen ? "100vh" : "calc(100vh - 80px)"}>
           <Flex flex="1" overflow="hidden">
             {!isFullScreen && (
-                <Box width="35%" p={4} borderRight="1px solid #2d2d2d" overflowY="auto">
+                <Box width="35%" p={4} borderRight="1px solid #2d2d2d" overflowY="auto" >
                   <Heading size="sm" mb={4}>Problem Statement</Heading>
                   <Text fontSize="14px" mb={4}>
                     You are given a Binary Tree of 'N' nodes with integer values. Find the LCA (Lowest Common Ancestor) of three nodes: N1, N2, and N3.
@@ -188,18 +196,21 @@ const MainEditor = () => {
                       color="white"
                       border="none"
                       fontSize="14px"
-                      resize="none"
+                      resize="auto"
                   />
                 </Box>
             )}
 
-            <Box width={isFullScreen ? "100%" : "65%"} p={4} display="flex" flexDirection="column">
-              {/* Header with LanguageSelector - Only added z-index wrapper */}
-              <Box position="relative" zIndex="dropdown">
+            <Box width={isFullScreen ? "100%" : "65%"} pt={2} display="flex" flexDirection="column" >
+
+              <Box position="relative" zIndex="dropdown" >
                 <Flex justify="space-between" align="center" mb={2}>
                   <LanguageSelector language={language} onSelect={onSelect} />
                   <Flex align="center" gap={2}>
                     <Button
+                        padding={2}
+                        colorPalette="grey"
+                        variant="outline"
                         leftIcon={<FiPlay />}
                         colorScheme="blue"
                         size="sm"
@@ -210,6 +221,9 @@ const MainEditor = () => {
                       Run
                     </Button>
                     <Button
+                        padding={2}
+                        colorPalette="grey"
+                        variant="outline"
                         leftIcon={<FiSave />}
                         colorScheme="green"
                         size="sm"
@@ -219,26 +233,40 @@ const MainEditor = () => {
                     >
                       Submit
                     </Button>
-                    <IconButton
-                        icon={<FiClock />}
-                        aria-label="Timer"
-                        onClick={toggleTimer}
-                        colorScheme={isRunning ? "red" : "gray"}
+
+                    <Button
+                        padding={2}
+                        colorPalette="grey"
+                        variant="outline"
+                        className="bg-{#282828}"
                         size="sm"
-                    />
-                    <Text fontSize="sm" color="gray.300">{formatTime(seconds)}</Text>
-                    <IconButton
-                        icon={isFullScreen ? <FiMinimize /> : <FiMaximize />}
+                        onClick={toggleTimer}
+
+                    >
+                      {!timerstatus ? <MdTimer color={"white"} /> : <MdTimerOff  color={"white"}/>}
+                    </Button>
+
+
+                    <Text fontSize="sm" color="white">{formatTime(seconds)}</Text>
+                    <Button
+                        padding={2}
+                        colorPalette="grey"
+                        variant="outline"
                         aria-label="Full-screen"
                         onClick={toggleFullScreen}
                         colorScheme="gray"
                         size="sm"
-                    />
+
+
+                    >
+                      {isFullScreen ? <FiMinimize /> : <FiMaximize />}
+                    </Button>
+
                   </Flex>
                 </Flex>
               </Box>
 
-              <Box flex="1" overflow="auto" mb={4} position="relative" zIndex="base">
+              <Box flex="1" overflow="auto"  mb={4} position="relative" zIndex="base" height="auto">
                 <MonacoEditor
                     height="100%"
                     language={language}
@@ -257,18 +285,24 @@ const MainEditor = () => {
                 />
               </Box>
 
-              <Box flex="1" overflow="hidden" borderTop="1px solid #2d2d2d">
+              <Box flex="1" overflow="auto" borderTop="1px white"  p={2}>
+                <ResultPanel output={output}
+                             isError={isError}
+                             isLoading={isExecuting || isSubmitting}
+                             status={status}
+                />
                 <Tabs variant="enclosed" height="100%">
                   <TabList>
                     <Tab>Console</Tab>
                     <Tab>Test Results</Tab>
                   </TabList>
-                  <TabPanels height="calc(100% - 40px)" overflowY="auto">
+                  <TabPanels height="calc(100% - 30px)" overflowY="auto">
                     <TabPanel p={0} height="100%">
                       <Output
                           output={output}
                           isError={isError}
                           isLoading={isExecuting}
+
                       />
                     </TabPanel>
                     <TabPanel p={0} height="100%">
