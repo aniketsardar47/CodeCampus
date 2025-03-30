@@ -6,6 +6,7 @@ import Register from './pages/Authentication/Register';
 import StudDash from "./pages/Student/StudDash";
 import TeachDash from "./pages/Teacher/TeachDash";
 import CreateAssignment from "./pages/Teacher/CreateAssignment";
+import LandingPage from "./pages/Landing";
 
 
 
@@ -13,6 +14,7 @@ function App() {
   return (
    <BrowserRouter>
    <Routes>
+    <Route element={<LandingPage/>} path="/" />
      <Route element={<Login/>} path='/login'/>
      <Route element={<Register/>} path='/signup'/>     
      
