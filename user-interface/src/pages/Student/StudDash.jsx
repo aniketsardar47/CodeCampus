@@ -6,12 +6,15 @@ import { LogOut, BookOpen, User, ChevronRight, Clock, AlertCircle } from "lucide
 import { object } from "prop-types";
 import Loader from "@/components/Loader";
 import { Center, Container } from "@chakra-ui/react";
+import { fetchAssignment } from "@/api/user";
 
 const StudDash = () => {
 
   const token = localStorage.getItem('token');
   const [userdet,setUserdet] = useState();
   const [loading,setLoading] = useState(true);
+  const [dataLoad,setDataLoad] = useState(true);
+  const [practicals,setPracticals] = useState();
 
   const handleLogout = ()=>{
     localStorage.removeItem('token');
@@ -33,14 +36,33 @@ const StudDash = () => {
         console.error("Failed to load user data:", error);
       }
     };
+
+     const getAssignments = async () =>{
+            try{
+              if(!token){
+                return;
+              }
+              const res = await fetchAssignment(token);
+              setPracticals(res.data);
+              console.log(assignments);
+    
+            }catch(error){
+              console.error("Failed to load assignments:", error);
+            }
+          };
+
     getUserData();
-  },[token]);
+    getAssignments();
+  },[token]); 
 
   useEffect(() => {
     if(userdet != undefined){
       setLoading(false);
     }
-  }, [userdet]);
+    if(practicals != undefined){
+      setDataLoad(false);
+    }
+  }, [userdet,practicals]);
 
 
 
@@ -88,7 +110,7 @@ const StudDash = () => {
             <div style={styles.statsContainer}>
               <div style={styles.statItem}>
                 <Clock style={styles.statIcon} />
-                <span>4 Pending</span>
+                <span>{practicals.length} Pending</span>
               </div>
               <div style={styles.statItem}>
                 <AlertCircle style={styles.statIcon} />
@@ -130,55 +152,60 @@ const StudDash = () => {
       </motion.div>
 
       {/* Main Content with Dark Assignment Cards */}
+      {!dataLoad 
+      ?
       <motion.div 
-        style={styles.mainContent}
-        initial={{ x: 100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div style={styles.headerContainer}>
-          <h2 style={styles.header}>Pending Assignments</h2>
-          <p style={styles.subHeader}>4 tasks waiting for your attention</p>
-        </div>
+      style={styles.mainContent}
+      initial={{ x: 100, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div style={styles.headerContainer}>
+        <h2 style={styles.header}>Pending Assignments</h2>
+        <p style={styles.subHeader}>{practicals.length} tasks waiting for your attention</p>
+      </div>
 
-        <div style={styles.grid}>
-          {assignments.map((assignment) => (
-            <motion.div
-              key={assignment.id}
-              style={{
-                ...styles.card,
-                borderLeft: `4px solid ${getStatusColor(assignment.status)}`
-              }}
-              whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0,0,0,0.3)" }}
-              transition={{ duration: 0.3 }}
+      <div style={styles.grid}>
+        {practicals.map((practical) => (
+          <motion.div
+            key={practical._id}
+            style={{
+              ...styles.card,
+              borderLeft: `4px solid rgba(239, 68, 68, 0.2)`
+            }}
+            whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0,0,0,0.3)" }}
+            transition={{ duration: 0.3 }}
+          >
+            <div style={styles.cardHeader}>
+              <BookOpen style={styles.cardIcon} />
+              <span style={{
+                ...styles.statusBadge,
+                backgroundColor: '#EF4444'
+              }}>
+                High Priority
+              </span>
+            </div>
+            
+            <h3 style={styles.cardTitle}>{practical.title}</h3>
+            <div style={styles.dueDateContainer}>
+              <Clock style={styles.dueDateIcon} />
+              <span style={styles.cardDueDate}>Due: {practical.due.substring(0,10)}</span>
+            </div>
+            
+            <motion.button 
+              style={styles.cardButton}
+              whileHover={{ backgroundColor: "#111" }}
             >
-              <div style={styles.cardHeader}>
-                <BookOpen style={styles.cardIcon} />
-                <span style={{
-                  ...styles.statusBadge,
-                  backgroundColor: getStatusColor(assignment.status, true)
-                }}>
-                  {assignment.status}
-                </span>
-              </div>
-              
-              <h3 style={styles.cardTitle}>{assignment.title}</h3>
-              <div style={styles.dueDateContainer}>
-                <Clock style={styles.dueDateIcon} />
-                <span style={styles.cardDueDate}>Due: {assignment.due}</span>
-              </div>
-              
-              <motion.button 
-                onClick={() => handleGoToEditor(assignment.id)}
-                style={styles.cardButton}
-                whileHover={{ backgroundColor: "#111" }}
-              >
-                Open Assignment
-              </motion.button>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+              Open Assignment
+            </motion.button>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+    : <Container fluid h={'100vh'} alignContent={'center'}>
+      <Center><Loader /></Center>
+    </Container>
+      }
     </div>
   );
 };

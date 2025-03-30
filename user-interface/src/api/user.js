@@ -32,3 +32,18 @@ export const addAssignment = async (assData,token) => {
         throw error;
     }
 }
+
+export const fetchAssignment = async (token) => {
+    try{
+        const res = await axios.get(`${API_URL}/fetchAssignment`,{
+            method: "GET",
+            headers: {
+                Authorization : `${token}`
+            }
+        });
+        return res;
+    }catch(error){
+        console.error("Error fetching assignments: ",error);
+        throw error;
+    }
+}

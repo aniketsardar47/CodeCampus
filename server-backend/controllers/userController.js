@@ -16,7 +16,6 @@ const userDetails = async (req,res)=>{
 
 const addAssignment = async (req,res)=> {
     const {assignor,title,description,due} = req.body;
-    console.log(assignor);
     try{
         const assignExists = await Assignment.findOne({title});
         if(assignExists){
@@ -37,4 +36,17 @@ const addAssignment = async (req,res)=> {
     }
 }
 
-module.exports = {userDetails,addAssignment};
+const fetchAssignments = async (req,res) => {
+
+    try{
+        const assignments = await Assignment.find();
+        res.json(assignments);
+    }catch(error){
+        console.log("Error fetching assignments: ",error);
+        res.status(500).json({message:"Server error!"});
+    }
+
+}
+
+
+module.exports = {userDetails,addAssignment,fetchAssignments};
