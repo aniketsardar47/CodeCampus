@@ -5,6 +5,7 @@ import ProtectedRoute from './utils/ProtectedRoutes';
 import Register from './pages/Authentication/Register';
 import StudDash from "./pages/Student/StudDash";
 import TeachDash from "./pages/Teacher/TeachDash";
+import CreateAssignment from "./pages/Teacher/CreateAssignment";
 
 
 
@@ -23,6 +24,8 @@ function App() {
      {/* Teacher Routes */}
      <Route element={<ProtectedRoute allowedRole={['Teacher']}/>}>
      <Route element={<TeachDash/>} path='/teacher'/>
+     <Route element={<CreateAssignment/>} path='/add-assignment'/>
+
    </Route>
    
    </Routes>

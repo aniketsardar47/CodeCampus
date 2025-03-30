@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { color, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar } from 'lucide-react';
+import { addAssignment, fetchUserData } from '@/api/user';
 
-const CreateAssignment = ({ addAssignment }) => {
+const CreateAssignment = () => {
   const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -12,19 +15,16 @@ const CreateAssignment = ({ addAssignment }) => {
     maxMarks: 100
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newAssignment = {
-      id: Date.now(),
-      title: formData.title,
-      description: formData.description,
-      due: new Date(formData.dueDate).toLocaleDateString(),
-      status: "Active",
-      submissions: 0,
-      totalStudents: 30
-    };
-    addAssignment(newAssignment);
-    navigate('/teacher');
+    try{
+      const teacher = await fetchUserData(token);
+      await addAssignment({assignor:teacher._id,title:formData.title,description:formData.description,due:formData.dueDate},token);
+      alert("Assignment added!");
+    }catch(error){
+        console.log("Error: ",error);
+        alert("Something went wrong, try again..");
+    }
   };
 
   return (
@@ -42,7 +42,7 @@ const CreateAssignment = ({ addAssignment }) => {
 
       <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.formGroup}>
-          <label style={styles.label}>Assignment Title*</label>
+          <label style={styles.label}>Assignment Title</label>
           <input
             type="text"
             value={formData.title}
@@ -167,10 +167,11 @@ const styles = {
     border: '1px solid #E5E7EB',
     fontSize: '14px',
     backgroundColor: '#F9FAFB',
+    color: "black",
     '&:focus': {
       outline: 'none',
       borderColor: '#4F46E5'
-    }
+    },
   },
   dateInputContainer: {
     position: 'relative',
@@ -183,6 +184,7 @@ const styles = {
     color: '#6B7280'
   },
   dateInput: {
+    color: 'black',
     width: '100%',
     padding: '12px 12px 12px 40px',
     borderRadius: '8px',

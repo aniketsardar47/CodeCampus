@@ -16,3 +16,19 @@ export const fetchUserData = async (token) =>{
         throw error;
     }
 };
+
+export const addAssignment = async (assData,token) => {
+    try{
+        const res = await axios.post(`${API_URL}/addAssignment`,assData,{
+            method : "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization : `${token}`
+            }
+        })
+        return res;
+    }catch(error){
+        console.error("Error adding assignment ",error);
+        throw error;
+    }
+}

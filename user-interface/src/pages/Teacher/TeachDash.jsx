@@ -1,10 +1,38 @@
-import React from "react";
+import React, { useState,useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { LogOut, BookOpen, User, ChevronRight, Plus, FileText } from "lucide-react";
+import Loader from "@/components/Loader";
+import { fetchUserData } from "@/api/user";
+import { Container, Center } from "@chakra-ui/react";
 
 const TeacherDashboard = () => {
   const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const [userdet,setUserdet] = useState();
+  const [loading,setLoading] = useState(true);
+
+   useEffect(()=>{
+      const getUserData = async ()=>{
+        try{
+          if(!token){
+            return;
+          }
+
+          const data = await fetchUserData(token);
+          setUserdet(data);
+        }catch(error){
+          console.error("Failed to load user data:", error);
+        }
+      };
+      getUserData();
+    },[token]);
+  
+    useEffect(() => {
+      if(userdet != undefined){
+        setLoading(false);
+      }
+    }, [userdet]);
 
   // Action Components
   const AddAssignmentButton = () => (
@@ -12,7 +40,7 @@ const TeacherDashboard = () => {
       style={styles.floatingActionButton}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      onClick={() => navigate("/create-assignment")}
+      onClick={() => navigate("/add-assignment")}
     >
       <Plus size={24} />
     </motion.div>
@@ -42,81 +70,87 @@ const TeacherDashboard = () => {
   );
 
   return (
-    <div style={styles.container}>
-      {/* Sidebar */}
-      <motion.div 
-        style={styles.sidebar}
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div>
-          <h1 style={styles.title}>Teacher Portal</h1>
+   loading ? 
+   <Container fluid h={'100vh'} bg={'white'} alignContent={'center'}>
+       <Center><Loader/></Center>
+      </Container>  :
+   <div style={styles.container}>
+   {/* Sidebar */}
+   <motion.div 
+     style={styles.sidebar}
+     initial={{ x: -100, opacity: 0 }}
+     animate={{ x: 0, opacity: 1 }}
+     transition={{ duration: 0.5 }}
+   >
+     <div>
+       <h1 style={styles.title}>Teacher Portal</h1>
 
-          {/* Profile Section */}
-          <div style={styles.profileSection}>
-            <div style={styles.profileImageContainer}>
-              <User style={styles.profileIcon} />
-            </div>
-            
-            <h2 style={styles.profileName}>Dr. Sarah Wilson</h2>
-            <p style={styles.profileEmail}>s.wilson@university.edu</p>
-          </div>
+       {/* Profile Section */}
+       <div style={styles.profileSection}>
+         <div style={styles.profileImageContainer}>
+           <User style={styles.profileIcon} />
+         </div>
+         
+         <h2 style={styles.profileName}>Prof. {userdet.name}</h2>
+         <p style={styles.profileEmail}>{userdet.email}</p>
+         <p style={styles.profileEmail}>Department : {userdet.department}</p>
+         <p style={styles.profileEmail}>Lab Incharge : {userdet.Lab}</p>
+       </div>
 
-          {/* Navigation Menu */}
-          <div style={styles.menuSection}>
-            <div style={styles.menuItemActive}>
-              <BookOpen style={styles.menuIcon} />
-              <span>Assignments</span>
-              <ChevronRight style={styles.menuArrow} />
-            </div>
-            <div style={styles.menuItem}>
-              <FileText style={styles.menuIcon} />
-              <span>Submissions</span>
-              <ChevronRight style={styles.menuArrow} />
-            </div>
-          </div>
-        </div>
+       {/* Navigation Menu */}
+       <div style={styles.menuSection}>
+         <div style={styles.menuItemActive}>
+           <BookOpen style={styles.menuIcon} />
+           <span>Assignments</span>
+           <ChevronRight style={styles.menuArrow} />
+         </div>
+         <div style={styles.menuItem}>
+           <FileText style={styles.menuIcon} />
+           <span>Submissions</span>
+           <ChevronRight style={styles.menuArrow} />
+         </div>
+       </div>
+     </div>
 
-        {/* Logout Button */}
-        <motion.button 
-          onClick={() => navigate("/login")}
-          style={styles.logoutButton}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <LogOut style={styles.icon} />
-          Sign Out
-        </motion.button>
-      </motion.div>
+     {/* Logout Button */}
+     <motion.button 
+       onClick={() => navigate("/login")}
+       style={styles.logoutButton}
+       whileHover={{ scale: 1.02 }}
+       whileTap={{ scale: 0.98 }}
+     >
+       <LogOut style={styles.icon} />
+       Sign Out
+     </motion.button>
+   </motion.div>
 
-      {/* Main Content */}
-      <motion.div 
-        style={styles.mainContent}
-        initial={{ x: 100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div style={styles.headerContainer}>
-          <h2 style={styles.header}>Assignment Management</h2>
-          <motion.button
-            style={styles.createButton}
-            whileHover={{ backgroundColor: "#4338CA" }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => navigate("/create-assignment")}
-          >
-            <Plus size={18} />
-            Create Assignment
-          </motion.button>
-        </div>
+   {/* Main Content */}
+   <motion.div 
+     style={styles.mainContent}
+     initial={{ x: 100, opacity: 0 }}
+     animate={{ x: 0, opacity: 1 }}
+     transition={{ duration: 0.5 }}
+   >
+     <div style={styles.headerContainer}>
+       <h2 style={styles.header}>Assignment Management</h2>
+       <motion.button
+         style={styles.createButton}
+         whileHover={{ backgroundColor: "#4338CA" }}
+         whileTap={{ scale: 0.98 }}
+         onClick={() => navigate("/add-assignment")}
+       >
+         <Plus size={18} />
+         Create Assignment
+       </motion.button>
+     </div>
 
-        {/* Empty State */}
-        <EmptyState />
+     {/* Empty State */}
+     <EmptyState />
 
-        {/* Floating Action Button */}
-        <AddAssignmentButton />
-      </motion.div>
-    </div>
+     {/* Floating Action Button */}
+     <AddAssignmentButton />
+   </motion.div>
+ </div>
   );
 };
 
