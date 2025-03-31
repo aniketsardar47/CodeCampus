@@ -7,6 +7,8 @@ import StudDash from "./pages/Student/StudDash";
 import TeachDash from "./pages/Teacher/TeachDash";
 import CreateAssignment from "./pages/Teacher/CreateAssignment";
 import LandingPage from "./pages/Landing";
+import ViewSubmissions from "./pages/Teacher/ViewSubmissions";
+
 
 
 
@@ -16,7 +18,11 @@ function App() {
    <Routes>
     <Route element={<LandingPage/>} path="/" />
      <Route element={<Login/>} path='/login'/>
-     <Route element={<Register/>} path='/signup'/>     
+     <Route element={<Register/>} path='/signup'/>    
+     <Route element={<TeachDash/>} path='/teacher'/>
+     <Route element={<CreateAssignment/>} path='/add-assignment'/>
+     <Route element={<ViewSubmissions />} path="/submission/:assignmentName"  />
+    
      
     {/* Student Routes */}
    <Route element={<ProtectedRoute allowedRole={['Student']}/>}>

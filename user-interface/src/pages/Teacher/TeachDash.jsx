@@ -1,7 +1,7 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { LogOut, BookOpen, User, ChevronRight, Plus, FileText,Clock } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { LogOut, BookOpen, User, ChevronRight, Plus, FileText, Clock } from "lucide-react";
 import Loader from "@/components/Loader";
 import { fetchAssignment, fetchUserData } from "@/api/user";
 import { Container, Center } from "@chakra-ui/react";
@@ -9,127 +9,94 @@ import { Container, Center } from "@chakra-ui/react";
 const TeacherDashboard = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
-  const [userdet,setUserdet] = useState();
-  const [assignments,setAssignments] = useState();
-  const [loading,setLoading] = useState(true);
-  const [assLoad,setAssLoad] = useState(true);
+  const [userdet, setUserdet] = useState();
+  const [assignments, setAssignments] = useState();
+  const [loading, setLoading] = useState(true);
+  const [assLoad, setAssLoad] = useState(true);
 
-   useEffect(()=>{
-      const getUserData = async ()=>{
-        try{
-          if(!token){
-            return;
-          }
-
-          const data = await fetchUserData(token);
-          setUserdet(data);
-        }catch(error){
-          console.error("Failed to load user data:", error);
-        }
-      };
-
-      const getAssignments = async () =>{
-        try{
-          if(!token){
-            return;
-          }
-          const res = await fetchAssignment(token);
-          setAssignments(res.data);
-          console.log(assignments);
-
-        }catch(error){
-          console.error("Failed to load assignments:", error);
-        }
-      };
-
-      getUserData();
-      getAssignments();
-    },[token]);
-  
-    useEffect(() => {
-      if(userdet != undefined){
-        setLoading(false);
+  useEffect(() => {
+    const getUserData = async () => {
+      try {
+        if (!token) return;
+        const data = await fetchUserData(token);
+        setUserdet(data);
+      } catch (error) {
+        console.error("Failed to load user data:", error);
       }
-      if(assignments != undefined){
-        setAssLoad(false);
-      }
-    }, [userdet,assLoad]);
+    };
 
-    const dataArrivalCheck = ()=>{
-      if(assignments.length != 0){
-        return <motion.div 
-        style={styles.mainContent}
-        initial={{ x: 100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div style={styles.grid}>
-          {assignments.map((assignment) => (
-            <motion.div
-              key={assignment._id}
-              style={{
-                ...styles.card,
-                borderLeft: `4px solid rgba(239, 68, 68, 0.2)`
-              }}
-              whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0,0,0,0.3)" }}
-              transition={{ duration: 0.3 }}
-            >
-              <div style={styles.cardHeader}>
-                <BookOpen style={styles.cardIcon} />
-                <span style={{
-                  ...styles.statusBadge,
-                  backgroundColor: 'rgba(0,0,0,0.3)'
-                }}>
-                  {assignment.status}
-                </span>
-              </div>
-              
-              <h3 style={styles.cardTitle}>{assignment.title}</h3>
-              <div style={styles.dueDateContainer}>
-                <Clock style={styles.dueDateIcon} />
-                <span style={styles.cardDueDate}>Due: {assignment.due.substring(0,10)}</span>
-              </div>
-              
-              <motion.button 
-                onClick={() => handleGoToEditor(assignment.id)}
-                style={styles.cardButton}
-                whileHover={{ backgroundColor: "#111" }}
+    const getAssignments = async () => {
+      try {
+        if (!token) return;
+        const res = await fetchAssignment(token);
+        setAssignments(res.data);
+      } catch (error) {
+        console.error("Failed to load assignments:", error);
+      }
+    };
+
+    getUserData();
+    getAssignments();
+  }, [token]);
+
+  useEffect(() => {
+    if (userdet != undefined) setLoading(false);
+    if (assignments != undefined) setAssLoad(false);
+  }, [userdet, assignments]);
+
+  const dataArrivalCheck = () => {
+    if (assignments.length !== 0) {
+      return (
+        <motion.div
+          style={styles.mainContent}
+          initial={{ x: 100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div style={styles.grid}>
+            {assignments.map((assignment) => (
+              <motion.div
+                key={assignment._id}
+                style={{
+                  ...styles.card,
+                  borderLeft: `4px solid rgba(239, 68, 68, 0.2)`
+                }}
+                whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0,0,0,0.3)" }}
+                transition={{ duration: 0.3 }}
               >
-                View Submissions
-              </motion.button>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-      }
-      else{
-        return <EmptyState />
-      }
+                <div style={styles.cardHeader}>
+                  <BookOpen style={styles.cardIcon} />
+                  <span style={{
+                    ...styles.statusBadge,
+                    backgroundColor: 'rgba(0,0,0,0.3)'
+                  }}>
+                    {assignment.status}
+                  </span>
+                </div>
+
+                <h3 style={styles.cardTitle}>{assignment.title}</h3>
+
+                <div style={styles.dueDateContainer}>
+                  <Clock style={styles.dueDateIcon} />
+                  <span style={styles.cardDueDate}>Due: {assignment.due.substring(0, 10)}</span>
+                </div>
+
+                <motion.button
+                  style={styles.cardButton}
+                  whileHover={{ backgroundColor: "#111" }}
+                  onClick={() => navigate(`/submission/${encodeURIComponent(assignment.title.toLowerCase().replace(/\s+/g, '-'))}`)}
+                >
+                  View Submissions
+                </motion.button>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      );
+    } else {
+      return <EmptyState />;
     }
-
-  // Action Components
-  const AddAssignmentButton = () => (
-    <motion.div
-      style={styles.floatingActionButton}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={() => navigate("/add-assignment")}
-    >
-      <Plus size={24} />
-    </motion.div>
-  );
-
-  const ViewSubmissionsButton = ({ assignmentId }) => (
-    <motion.button
-      style={styles.viewSubmissionsButton}
-      whileHover={{ backgroundColor: "#1E40AF" }}
-      whileTap={{ scale: 0.98 }}
-      onClick={() => navigate(`/submissions/${assignmentId}`)}
-    >
-      <FileText size={16} />
-      View Submissions
-    </motion.button>
-  );
+  };
 
   const EmptyState = () => (
     <div style={styles.emptyState}>
@@ -141,87 +108,76 @@ const TeacherDashboard = () => {
     </div>
   );
 
-  return (
-   loading ? 
-   <Container fluid h={'100vh'} bg={'white'} alignContent={'center'}>
-       <Center><Loader/></Center>
-      </Container>  :
-   <div style={styles.container}>
-   {/* Sidebar */}
-   <motion.div 
-     style={styles.sidebar}
-     initial={{ x: -100, opacity: 0 }}
-     animate={{ x: 0, opacity: 1 }}
-     transition={{ duration: 0.5 }}
-   >
-     <div>
-       <h1 style={styles.title}>Teacher Portal</h1>
+  return loading ? (
+    <Container fluid h={'100vh'} bg={'white'} alignContent={'center'}>
+      <Center><Loader /></Center>
+    </Container>
+  ) : (
+    <div style={styles.container}>
+      {/* Sidebar */}
+      <motion.div
+        style={styles.sidebar}
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div>
+          <h1 style={styles.title}>Teacher Portal</h1>
 
-       {/* Profile Section */}
-       <div style={styles.profileSection}>
-         <div style={styles.profileImageContainer}>
-           <User style={styles.profileIcon} />
-         </div>
-         
-         <h2 style={styles.profileName}>Prof. {userdet.name}</h2>
-         <p style={styles.profileEmail}>{userdet.email}</p>
-         <p style={styles.profileEmail}>Department : {userdet.department}</p>
-         <p style={styles.profileEmail}>Lab Incharge : {userdet.Lab}</p>
-       </div>
+          <div style={styles.profileSection}>
+            <div style={styles.profileImageContainer}>
+              <User style={styles.profileIcon} />
+            </div>
 
-       {/* Navigation Menu */}
-       <div style={styles.menuSection}>
-         <div style={styles.menuItemActive}>
-           <BookOpen style={styles.menuIcon} />
-           <span>Assignments</span>
-           <ChevronRight style={styles.menuArrow} />
-         </div>
-         <div style={styles.menuItem}>
-           <FileText style={styles.menuIcon} />
-           <span>Submissions</span>
-           <ChevronRight style={styles.menuArrow} />
-         </div>
-       </div>
-     </div>
+            <h2 style={styles.profileName}>Prof. {userdet.name}</h2>
+            <p style={styles.profileEmail}>{userdet.email}</p>
+            <p style={styles.profileEmail}>Department: {userdet.department}</p>
+            <p style={styles.profileEmail}>Lab Incharge: {userdet.Lab}</p>
+          </div>
 
-     {/* Logout Button */}
-     <motion.button 
-       onClick={() => navigate("/login")}
-       style={styles.logoutButton}
-       whileHover={{ scale: 1.02 }}
-       whileTap={{ scale: 0.98 }}
-     >
-       <LogOut style={styles.icon} />
-       Sign Out
-     </motion.button>
-   </motion.div>
+          <div style={styles.menuSection}>
+            <div style={styles.menuItemActive}>
+              <BookOpen style={styles.menuIcon} />
+              <span>Assignments</span>
+              <ChevronRight style={styles.menuArrow} />
+            </div>
+          </div>
+        </div>
 
-   {/* Main Content */}
-   <motion.div 
-     style={styles.main}
-     initial={{ x: 100, opacity: 0 }}
-     animate={{ x: 0, opacity: 1 }}
-     transition={{ duration: 0.5 }}
-   >
-     <div style={styles.headerContainer}>
-       <h2 style={styles.header}>Assignment Management</h2>
-       <motion.button
-         style={styles.createButton}
-         whileHover={{ backgroundColor: "#4338CA" }}
-         whileTap={{ scale: 0.98 }}
-         onClick={() => navigate("/add-assignment")}
-       >
-         <Plus size={18} />
-         Create Assignment
-       </motion.button>
-     </div>
+        <motion.button
+          onClick={() => navigate("/login")}
+          style={styles.logoutButton}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <LogOut style={styles.icon} />
+          Sign Out
+        </motion.button>
+      </motion.div>
 
-     {/* Main Content with Dark Assignment Cards */}
-     {
-        !assLoad ? dataArrivalCheck() : <Loader />
-    }
-   </motion.div>
- </div>
+      {/* Main Content */}
+      <motion.div
+        style={styles.main}
+        initial={{ x: 100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div style={styles.headerContainer}>
+          <h2 style={styles.header}>Assignment Management</h2>
+          <motion.button
+            style={styles.createButton}
+            whileHover={{ backgroundColor: "#4338CA" }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate("/add-assignment")}
+          >
+            <Plus size={18} />
+            Create Assignment
+          </motion.button>
+        </div>
+
+        {!assLoad ? dataArrivalCheck() : <Loader />}
+      </motion.div>
+    </div>
   );
 };
 
@@ -232,7 +188,6 @@ const styles = {
     fontFamily: "'Inter', sans-serif",
     backgroundColor: "#f3f4f6"
   },
-
   sidebar: {
     width: "280px",
     backgroundColor: "#fff",
