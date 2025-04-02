@@ -19,11 +19,7 @@ function App() {
     <Route element={<LandingPage/>} path="/" />
      <Route element={<Login/>} path='/login'/>
      <Route element={<Register/>} path='/signup'/>    
-     <Route element={<TeachDash/>} path='/teacher'/>
-     <Route element={<CreateAssignment/>} path='/add-assignment'/>
-     <Route element={<ViewSubmissions />} path="/submission/:assignmentName"  />
-    
-     
+         
     {/* Student Routes */}
    <Route element={<ProtectedRoute allowedRole={['Student']}/>}>
      <Route element={<StudDash/>} path='/student'/>
@@ -33,6 +29,7 @@ function App() {
      <Route element={<ProtectedRoute allowedRole={['Teacher']}/>}>
      <Route element={<TeachDash/>} path='/teacher'/>
      <Route element={<CreateAssignment/>} path='/add-assignment'/>
+     <Route element={<ViewSubmissions />} path="/submission/:assignmentid"  />
 
    </Route>
    

@@ -14,12 +14,17 @@ const TeacherDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [assLoad, setAssLoad] = useState(true);
 
+  const checkTeacher = (obj) => {
+    return obj.assignor == userdet._id;
+  }
+
   useEffect(() => {
     const getUserData = async () => {
       try {
         if (!token) return;
         const data = await fetchUserData(token);
         setUserdet(data);
+        console.log(data);
       } catch (error) {
         console.error("Failed to load user data:", error);
       }
@@ -41,7 +46,9 @@ const TeacherDashboard = () => {
 
   useEffect(() => {
     if (userdet != undefined) setLoading(false);
-    if (assignments != undefined) setAssLoad(false);
+    if (assignments != undefined){
+      setAssLoad(false);
+    }
   }, [userdet, assignments]);
 
   const dataArrivalCheck = () => {
@@ -54,7 +61,7 @@ const TeacherDashboard = () => {
           transition={{ duration: 0.5 }}
         >
           <div style={styles.grid}>
-            {assignments.map((assignment) => (
+            {assignments.filter(checkTeacher).map((assignment) => (
               <motion.div
                 key={assignment._id}
                 style={{
@@ -84,7 +91,7 @@ const TeacherDashboard = () => {
                 <motion.button
                   style={styles.cardButton}
                   whileHover={{ backgroundColor: "#111" }}
-                  onClick={() => navigate(`/submission/${encodeURIComponent(assignment.title.toLowerCase().replace(/\s+/g, '-'))}`)}
+                  onClick={() => navigate(`/submission/${encodeURIComponent(assignment._id.replace(/\s+/g, '-'))}`)}
                 >
                   View Submissions
                 </motion.button>

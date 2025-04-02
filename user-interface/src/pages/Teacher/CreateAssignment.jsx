@@ -19,7 +19,7 @@ const CreateAssignment = () => {
     e.preventDefault();
     try{
       const teacher = await fetchUserData(token);
-      await addAssignment({assignor:teacher._id,title:formData.title,description:formData.description,due:formData.dueDate},token);
+      await addAssignment({assignor:teacher._id,teacher:teacher.name,title:formData.title,description:formData.description,due:formData.dueDate},token);
       alert("Assignment added!");
     }catch(error){
         console.log("Error: ",error);

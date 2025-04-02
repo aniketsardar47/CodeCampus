@@ -47,3 +47,47 @@ export const fetchAssignment = async (token) => {
         throw error;
     }
 }
+
+export const fetchPersonalDetails = async (id) =>{
+    try{
+        const res = await axios.get(`${API_URL}/personalInfo`,id,{
+            method: "GET",
+        });
+        return res;
+    }catch(error){
+        console.error("Error fetching details ",error);
+        throw error;
+    }
+};
+
+export const fetchSubmissions = async (token,assignment_id) => {
+    try{
+        const res = await axios.get(`${API_URL}/fetchSubmissions`,{
+            headers: {
+                Authorization: `${token}`
+            },
+            params: {
+                id: assignment_id,
+              },
+        });
+        return res;
+    }catch(error){
+        console.error("Error fetching details ",error);
+        throw error;
+    }
+}
+
+export const fetchBothAssignments = async (token) => {
+    try{
+        const res = await axios.get(`${API_URL}/pending_completed_Assignments`,{
+            method: "GET",
+            headers: {
+                Authorization : `${token}`
+            }
+        });
+        return res;
+    }catch(error){
+        console.error("Error fetching assignments: ",error);
+        throw error;
+    }
+}

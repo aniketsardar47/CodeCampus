@@ -1,26 +1,42 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Flex, Portal, Select, Spacer, createListCollection } from "@chakra-ui/react"
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { fetchSubmissions } from "@/api/user";
 
 const ViewSubmissions = () => {
-  const { assignmentName } = useParams();
+  const { assignmentid } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
+  const [submissions, setSubmissions] = useState([]);
 
-  // Decode the URL-friendly name back to readable format
-  const decodedAssignmentName = decodeURIComponent(assignmentName).replace(/-/g, ' ');
+  const token = localStorage.getItem('token');
+  const decoded_id = decodeURIComponent(assignmentid.replace(/\s+/g, '-'));
+  console.log(decoded_id);
 
-  // Demo data (in a real app, you would fetch this based on the assignment name)
-  const submissions = [
-    { id: 1, name: "Varun Tipkari", branch: "CS", status: "Completed", submittedOn: "2025-03-30" },
-    { id: 2, name: "Aniket Sardar", branch: "CS", status: "Pending", submittedOn: "2025-03-31" },
-    { id: 3, name: "Jayesh Borse", branch: "CS", status: "Completed", submittedOn: "2025-03-29" },
-    { id: 4, name: "Dinesh Rathod", branch: "CS", status: "Pending", submittedOn: "2025-03-31" },
-  ];
+  useEffect(() => {
+    const getSubmissions = async () => {
+      console.log(token);
+      try {
+        const sub = await fetchSubmissions(token,decoded_id);
+        console.log(sub);
+        setSubmissions(sub.data);
+      } catch (error) {
+        console.log("Error fetching data, ", error);
+      }
+    }
+
+    getSubmissions();
+  },[token]);
+
+  useEffect(()=>{
+    console.log(submissions);
+  })
+
 
   const getStatusIcon = (status) => {
-    switch(status) {
+    switch (status) {
       case "Completed":
         return <CheckCircle size={16} color="#10B981" />;
       case "Pending":
@@ -29,6 +45,8 @@ const ViewSubmissions = () => {
         return <AlertCircle size={16} color="#EF4444" />;
     }
   };
+
+  const [filt, setFilter] = useState("Completed");
 
   return (
     <motion.div
@@ -39,15 +57,54 @@ const ViewSubmissions = () => {
     >
       {/* Header */}
       <div style={styles.header}>
-        <button 
-          onClick={() => navigate(-1)} 
+        <button
+          onClick={() => navigate(-1)}
           style={styles.backButton}
         >
           <ChevronLeft size={20} />
           Back to Assignments
         </button>
-        <h2 style={styles.title}>Submissions for: {decodedAssignmentName}</h2>
+        <Flex direction={'row'} color={'black'}>
+          <h2 style={styles.title}>Submissions for: {submissions[0] == undefined ? "" : submissions[0].assignment.title}</h2>
+          <Spacer />
+
+          <Select.Root
+            collection={frameworks}
+            width="200px"
+            value={filt}
+            onValueChange={(e) => setFilter(e.value)}
+          >
+            <Select.HiddenSelect />
+            <Select.Label>Filter</Select.Label>
+            <Select.Control>
+              <Select.Trigger>
+                <Select.ValueText
+                  p={'10px'}
+                  placeholder={filt} />
+              </Select.Trigger>
+              <Select.IndicatorGroup pr={'5px'}>
+                <Select.Indicator />
+              </Select.IndicatorGroup>
+            </Select.Control>
+            <Portal>
+              <Select.Positioner>
+                <Select.Content
+                  p={'10px'}
+                >
+                  {frameworks.items.map((framework) => (
+                    <Select.Item item={framework} key={framework.value}>
+                      {framework.label}
+                      <Select.ItemIndicator />
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Positioner>
+            </Portal>
+          </Select.Root>
+        </Flex>
       </div>
+
+
 
       {/* Table */}
       <div style={styles.tableContainer}>
@@ -62,33 +119,69 @@ const ViewSubmissions = () => {
             </tr>
           </thead>
           <tbody>
-            {submissions.map((submission) => (
-              <tr key={submission.id} style={styles.tableRow}>
-                <td style={styles.td}>{submission.name}</td>
-                <td style={styles.td}>{submission.branch}</td>
+            {filt == "pending" ?
+             submissions.filter((ob)=>{
+              return ob.status == false
+             }).map((assignment) => (
+              <tr key={assignment._id} style={styles.tableRow}>
+                <td style={styles.td}>{assignment.student.name}</td>
+                <td style={styles.td}>{assignment.student.department}</td>
                 <td style={styles.td}>
                   <div style={styles.statusCell}>
-                    {getStatusIcon(submission.status)}
-                    <span>{submission.status}</span>
+                    {getStatusIcon("Pending")}
+                    <span>Pending</span>
                   </div>
                 </td>
-                <td style={styles.td}>{submission.submittedOn}</td>
+                <td style={styles.td}>NA</td>
                 <td style={styles.td}>
-                  <button 
+                  <button
                     style={styles.viewButton}
-                    onClick={() => navigate(`/submission/${assignmentName}/student/${submission.id}`)}
+                    onClick={""}
                   >
                     View
                   </button>
                 </td>
               </tr>
-            ))}
+            ))
+             :
+             submissions.filter((ob)=>{
+              return ob.status == true
+             }).map((assignment) => (
+              <tr key={assignment._id} style={styles.tableRow}>
+                <td style={styles.td}>{assignment.student.name}</td>
+                <td style={styles.td}>{assignment.student.department}</td>
+                <td style={styles.td}>
+                  <div style={styles.statusCell}>
+                    {getStatusIcon("Completed")}
+                    <span>Pending</span>
+                  </div>
+                </td>
+                <td style={styles.td}>{assignment.submission_date.substring(0,10)}</td>
+                <td style={styles.td}>
+                  <button
+                    style={styles.viewButton}
+                    onClick={""}
+                  >
+                    View
+                  </button>
+                </td>
+              </tr>
+            ))
+            }
           </tbody>
         </table>
       </div>
     </motion.div>
   );
 };
+
+const frameworks = createListCollection({
+  items: [
+    { label: "Completed", value: "done" },
+    { label: "Pending", value: "pending" },
+  ],
+})
+
 const styles = {
   container: {
     padding: "32px",

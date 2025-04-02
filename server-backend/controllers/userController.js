@@ -1,4 +1,5 @@
 const Assignment = require('../models/Assignment');
+const Submission = require('../models/Submission');
 const User = require('../models/Users');
 
 const userDetails = async (req,res)=>{
@@ -14,21 +15,38 @@ const userDetails = async (req,res)=>{
     }
 }
 
+const fetchSubmissions = async (req,res) => {
+    console.log(req.query.id);
+    try{
+        const data = await Submission.find({assignment:req.query.id}).populate('student').populate('assignment');
+        res.json(data);
+    }catch(error){
+        console.log("Error fetching submissions: ",error);
+        res.status(500).json({message:"Server error!"});
+    }
+}
+
 const addAssignment = async (req,res)=> {
-    const {assignor,title,description,due} = req.body;
+    const {assignor,teacher,title,description,due} = req.body;
     try{
         const assignExists = await Assignment.findOne({title});
         if(assignExists){
             res.status(400).json({ message: "Assignment already exists" });
         }
-        const assignment = await Assignment.create({assignor,title,description,due});
+        const new_ass = await Assignment.create({assignor,teacher,title,description,due});
+
+        const students = await User.find({role:"Student"});
+        const submissions = students.map(student=> ({
+            assignment : new_ass._id,
+            student: student._id,
+            status: false,
+            submission_date : ""
+        }));
+
+        await Submission.insertMany(submissions);
 
         res.status(201).json({
-            _id : assignment._id,
-            assignor: assignment.assignor,
-            title: assignment.email,
-            description : assignment.role,
-            due: assignment.due,
+           message : "Assignment created and submissions initialized!"
         })
     }catch(error){
         console.log("Error creating assignment: ",error);
@@ -37,7 +55,6 @@ const addAssignment = async (req,res)=> {
 }
 
 const fetchAssignments = async (req,res) => {
-
     try{
         const assignments = await Assignment.find();
         res.json(assignments);
@@ -45,8 +62,21 @@ const fetchAssignments = async (req,res) => {
         console.log("Error fetching assignments: ",error);
         res.status(500).json({message:"Server error!"});
     }
+}
 
+const pending_completed_Assignments = async (req,res) => {
+    try{
+        const user_id = req.user.id;
+        console.log(user_id);
+        const pending = await Submission.find({student:user_id,status : false}).populate('assignment');
+        const completed = await Submission.find({student : user_id,status : true}).populate('assignment');
+        console.log(pending);
+        res.json({pending,completed});
+    }catch(error){
+        console.log("Error fetching assignments: ",error);
+        res.status(500).json({message:"Server error!"});
+    }
 }
 
 
-module.exports = {userDetails,addAssignment,fetchAssignments};
+module.exports = {userDetails,addAssignment,fetchAssignments,fetchSubmissions,pending_completed_Assignments};

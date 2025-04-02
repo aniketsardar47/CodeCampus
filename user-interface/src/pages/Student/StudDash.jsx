@@ -6,14 +6,14 @@ import { LogOut, BookOpen, User, ChevronRight, Clock, AlertCircle, CheckCircle }
 import { object } from "prop-types";
 import Loader from "@/components/Loader";
 import { Center, Container } from "@chakra-ui/react";
-import { fetchAssignment } from "@/api/user";
+import { fetchBothAssignments } from "@/api/user";
 
 const StudDash = () => {
   const token = localStorage.getItem('token');
   const [userdet, setUserdet] = useState();
   const [loading, setLoading] = useState(true);
   const [dataLoad, setDataLoad] = useState(true);
-  const [practicals, setPracticals] = useState();
+  const [pendingPracticals, setPendingPracticals] = useState([]);
   const [completedPracticals, setCompletedPracticals] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
 
@@ -41,9 +41,12 @@ const StudDash = () => {
         if (!token) {
           return;
         }
-        const res = await fetchAssignment(token);
-        setPracticals(res.data.filter(assignment => !assignment.completed));
-        setCompletedPracticals(res.data.filter(assignment => assignment.completed));
+        const res = await fetchBothAssignments(token);
+        console.log(res);
+        setPendingPracticals(res.data.pending);
+        setCompletedPracticals(res.data.completed);
+        console.log(pendingPracticals);
+        console.log(completedPracticals);
       } catch (error) {
         console.error("Failed to load assignments:", error);
       }
@@ -57,10 +60,10 @@ const StudDash = () => {
     if (userdet != undefined) {
       setLoading(false);
     }
-    if (practicals != undefined) {
+    if (pendingPracticals != undefined) {
       setDataLoad(false);
     }
-  }, [userdet, practicals]);
+  }, [userdet, pendingPracticals]);
 
   const navigate = useNavigate();
 
@@ -101,7 +104,7 @@ const StudDash = () => {
             <div style={styles.statsContainer}>
               <div style={styles.statItem}>
                 <Clock style={styles.statIcon} />
-                <span>{practicals.length} Pending</span>
+                <span>{pendingPracticals.length} Pending</span>
               </div>
               <div style={styles.statItem}>
                 <CheckCircle style={styles.statIcon} />
@@ -112,7 +115,7 @@ const StudDash = () => {
 
           {/* Navigation Menu */}
           <div style={styles.menuSection}>
-            <div 
+            <div
               style={showCompleted ? styles.menuItem : styles.menuItemActive}
               onClick={() => setShowCompleted(false)}
             >
@@ -120,7 +123,7 @@ const StudDash = () => {
               <span>Pending Assignments</span>
               <ChevronRight style={styles.menuArrow} />
             </div>
-            <div 
+            <div
               style={showCompleted ? styles.menuItemActive : styles.menuItem}
               onClick={() => setShowCompleted(true)}
             >
@@ -157,19 +160,19 @@ const StudDash = () => {
               {showCompleted ? 'Completed Assignments' : 'Pending Assignments'}
             </h2>
             <p style={styles.subHeader}>
-              {showCompleted 
-                ? `${completedPracticals.length} tasks completed` 
-                : `${practicals.length} tasks waiting for your attention`}
+              {showCompleted
+                ? `${completedPracticals.length} tasks completed`
+                : `${pendingPracticals.length} tasks waiting for your attention`}
             </p>
           </div>
 
           <div style={styles.grid}>
-            {(showCompleted ? completedPracticals : practicals).map((practical) => (
+            {(showCompleted ? completedPracticals : pendingPracticals).map((practical) => (
               <motion.div
                 key={practical._id}
                 style={{
                   ...styles.card,
-                  backgroundColor: "#1a1a2e", 
+                  backgroundColor: "#1a1a2e",
                   borderLeft: `4px solid ${showCompleted ? '#10B981' : '#EF4444'}`
                 }}
                 whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0,0,0,0.3)" }}
@@ -185,10 +188,10 @@ const StudDash = () => {
                   </span>
                 </div>
 
-                <h3 style={styles.cardTitle}>{practical.title}</h3>
+                <h3 style={styles.cardTitle}>{practical.assignment.title}<br/>{practical.assignment.teacher }</h3>
                 <div style={styles.dueDateContainer}>
                   <Clock style={styles.dueDateIcon} />
-                  <span style={styles.cardDueDate}>Due: {practical.due.substring(0, 10)}</span>
+                  <span style={styles.cardDueDate}>Due: {practical.assignment.due.substring(0,10)}</span>
                 </div>
 
                 <motion.button
@@ -294,11 +297,11 @@ const styles = {
     borderRadius: "8px",
     marginBottom: "8px",
     cursor: "pointer",
-    color: "#374151", 
-    backgroundColor: "#f3f4f6", 
+    color: "#374151",
+    backgroundColor: "#f3f4f6",
     transition: "all 0.2s ease",
     ":hover": {
-      backgroundColor: "#e5e7eb" 
+      backgroundColor: "#e5e7eb"
     }
   },
   menuItemActive: {
@@ -308,8 +311,8 @@ const styles = {
     borderRadius: "8px",
     marginBottom: "8px",
     cursor: "pointer",
-    backgroundColor: "#111827", 
-    color: "#fff", 
+    backgroundColor: "#111827",
+    color: "#fff",
     transition: "all 0.2s ease"
   },
   menuIcon: {
