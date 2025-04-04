@@ -8,9 +8,8 @@ import {
   Text,
   IconButton,
   Spinner,
-
-
 } from "@chakra-ui/react";
+import { useColorMode,useColorModeValue } from "@/components/ui/color-mode";
 import {
   Tab,
   TabList,
@@ -18,16 +17,11 @@ import {
   TabPanels,
   Tabs,
 } from "@chakra-ui/tabs"
-
-import { CiAlarmOn,CiAlarmOff } from "react-icons/ci";
-
-import {
-  useToast,
-} from "@chakra-ui/toast";
-import { MdTimer,MdTimerOff  } from "react-icons/md";
-import {  FiMaximize, FiMinimize, FiPlay, FiSave } from "react-icons/fi";
+import { CiAlarmOn, CiAlarmOff } from "react-icons/ci";
+import { useToast } from "@chakra-ui/toast";
+import { MdTimer, MdTimerOff } from "react-icons/md";
+import { FiMaximize, FiMinimize, FiPlay, FiSave, FiSun, FiMoon } from "react-icons/fi";
 import MonacoEditor from "@monaco-editor/react";
-import Navbar from "./navbar";
 import LanguageSelector from "./editor-pages/LanguageSelector";
 import { CODE_SNIPPETS } from "./constants.jsx";
 import Output from "./editor-pages/Output";
@@ -35,6 +29,7 @@ import { executeCode, submitCode } from "./api.jsx";
 import ResultPanel from "./editor-pages/ResultPanel";
 
 const MainEditor = () => {
+  const { colorMode, toggleColorMode } = useColorMode();
   const editorRef = useRef();
   const [code, setCode] = useState(CODE_SNIPPETS["javascript"]);
   const [language, setLanguage] = useState("javascript");
@@ -49,6 +44,14 @@ const MainEditor = () => {
   const toast = useToast();
   const [timerstatus, setTimerstatus] = useState(false);
   const [status, setStatus] = useState("run");
+
+  // Color mode values
+  const bgColor = useColorModeValue("gray.50", "gray.900");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const textColor = useColorModeValue("gray.800", "gray.100");
+  const editorBg = useColorModeValue("white", "#1e1e1e");
+  const panelBg = useColorModeValue("white", "gray.800");
+  const buttonBg = useColorModeValue("gray.100", "gray.700");
 
   useEffect(() => {
     let timer;
@@ -162,9 +165,9 @@ const MainEditor = () => {
           executionTime: submission.executionTime,
         });
         showToast(
-            "Submission Successful",
-            submission.message,
-            submission.passed ? "success" : "warning"
+          "Submission Successful",
+          submission.message,
+          submission.passed ? "success" : "warning"
         );
       }
     } catch (error) {
@@ -177,148 +180,189 @@ const MainEditor = () => {
   };
 
   return (
-      <Box bg="gray.900" minH="100vh" color="gray.300" overflow="hidden" position="relative">
-        <Navbar />
-        <Flex direction="column" height={isFullScreen ? "100vh" : "calc(100vh - 80px)"}>
-          <Flex flex="1" overflow="hidden">
-            {!isFullScreen && (
-                <Box width="35%" p={4} borderRight="1px solid #2d2d2d" overflowY="auto" >
-                  <Heading size="sm" mb={4}>Problem Statement</Heading>
-                  <Text fontSize="14px" mb={4}>
-                    You are given a Binary Tree of 'N' nodes with integer values. Find the LCA (Lowest Common Ancestor) of three nodes: N1, N2, and N3.
-                  </Text>
-                  <Textarea
-                      readOnly
-                      value={`For example: LCA of (7, 8, 10) is 1`}
-                      size="sm"
-                      height="70%"
-                      bg="gray.800"
-                      color="white"
-                      border="none"
-                      fontSize="14px"
-                      resize="auto"
-                  />
-                </Box>
-            )}
-
-            <Box width={isFullScreen ? "100%" : "65%"} pt={2} display="flex" flexDirection="column" >
-
-              <Box position="relative" zIndex="dropdown" >
-                <Flex justify="space-between" align="center" mb={2}>
-                  <LanguageSelector language={language} onSelect={onSelect} />
-                  <Flex align="center" gap={2}>
-                    <Button
-                        padding={2}
-                        colorPalette="grey"
-                        variant="outline"
-                        leftIcon={<FiPlay />}
-                        colorScheme="blue"
-                        size="sm"
-                        onClick={handleRunCode}
-                        isLoading={isExecuting}
-                        loadingText="Running"
-                    >
-                      Run
-                    </Button>
-                    <Button
-                        padding={2}
-                        colorPalette="grey"
-                        variant="outline"
-                        leftIcon={<FiSave />}
-                        colorScheme="green"
-                        size="sm"
-                        onClick={handleSubmitCode}
-                        isLoading={isSubmitting}
-                        loadingText="Submitting"
-                    >
-                      Submit
-                    </Button>
-
-                    <Button
-                        padding={2}
-                        colorPalette="grey"
-                        variant="outline"
-                        className="bg-{#282828}"
-                        size="sm"
-                        onClick={toggleTimer}
-
-                    >
-                      {!timerstatus ? <MdTimer color={"white"} /> : <MdTimerOff  color={"white"}/>}
-                    </Button>
-
-
-                    <Text fontSize="sm" color="white">{formatTime(seconds)}</Text>
-                    <Button
-                        padding={2}
-                        colorPalette="grey"
-                        variant="outline"
-                        aria-label="Full-screen"
-                        onClick={toggleFullScreen}
-                        colorScheme="gray"
-                        size="sm"
-
-
-                    >
-                      {isFullScreen ? <FiMinimize /> : <FiMaximize />}
-                    </Button>
-
-                  </Flex>
-                </Flex>
-              </Box>
-
-              <Box flex="1" overflow="auto"  mb={4} position="relative" zIndex="base" height="auto">
-                <MonacoEditor
-                    height="100%"
-                    language={language}
-                    theme="vs-dark"
-                    value={code}
-                    onChange={handleEditorChange}
-                    onMount={onMount}
-                    options={{
-                      selectOnLineNumbers: true,
-                      minimap: { enabled: false },
-                      wordWrap: "on",
-                      automaticLayout: true,
-                      fontSize: 14,
-                    }}
-                    loading={<Spinner color="blue.500" size="xl" />}
-                />
-              </Box>
-
-              <Box flex="1" overflow="auto" borderTop="1px white"  p={2}>
-                <ResultPanel output={output}
-                             isError={isError}
-                             isLoading={isExecuting || isSubmitting}
-                             status={status}
-                />
-                <Tabs variant="enclosed" height="100%">
-                  <TabList>
-                    <Tab>Console</Tab>
-                    <Tab>Test Results</Tab>
-                  </TabList>
-                  <TabPanels height="calc(100% - 30px)" overflowY="auto">
-                    <TabPanel p={0} height="100%">
-                      <Output
-                          output={output}
-                          isError={isError}
-                          isLoading={isExecuting}
-
-                      />
-                    </TabPanel>
-                    <TabPanel p={0} height="100%">
-                      <Output
-                          output={executionResult}
-                          isError={isError}
-                          isLoading={isSubmitting}
-                      />
-                    </TabPanel>
-                  </TabPanels>
-                </Tabs>
-              </Box>
-            </Box>
+    <Box bg={bgColor} minH="100vh" color={textColor} overflow="hidden" position="relative">
+      <Flex direction="column" height={isFullScreen ? "100vh" : "calc(100vh - 60px)"}>
+        {/* Top Bar */}
+        <Flex 
+          p={3} 
+          bg={useColorModeValue("gray.800", "gray.900")} 
+          color="white" 
+          justify="space-between" 
+          align="center"
+          borderBottom="1px solid"
+          borderColor={borderColor}
+        >
+          <Flex align="center">
+            <Heading size="md" mr={4} color={useColorModeValue("blue.400", "blue.300")}>
+              Code<span style={{ color: useColorModeValue("#4cc9f0", "#4cc9f0") }}>{'{'}</span>Campus<span style={{ color: useColorModeValue("#4cc9f0", "#4cc9f0") }}>{'}'}</span>
+            </Heading>
+          </Flex>
+          <Flex align="center" gap={3}>
+            <Text fontSize="sm" color={useColorModeValue("gray.300", "gray.400")}>
+              {formatTime(seconds)}
+            </Text>
+            <IconButton
+              icon={timerstatus ? <MdTimerOff /> : <MdTimer />}
+              onClick={toggleTimer}
+              aria-label="Toggle timer"
+              variant="ghost"
+              color={useColorModeValue("gray.300", "gray.400")}
+              _hover={{ bg: "transparent", color: "white" }}
+            />
+            <IconButton
+              icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
+              onClick={toggleColorMode}
+              aria-label="Toggle theme"
+              variant="ghost"
+              color={useColorModeValue("gray.300", "gray.400")}
+              _hover={{ bg: "transparent", color: "white" }}
+            />
+            <IconButton
+              icon={isFullScreen ? <FiMinimize /> : <FiMaximize />}
+              onClick={toggleFullScreen}
+              aria-label="Toggle fullscreen"
+              variant="ghost"
+              color={useColorModeValue("gray.300", "gray.400")}
+              _hover={{ bg: "transparent", color: "white" }}
+            />
           </Flex>
         </Flex>
-      </Box>
+
+        <Flex flex="1" overflow="hidden">
+          {!isFullScreen && (
+            <Box 
+              width="35%" 
+              p={4} 
+              borderRight="1px solid" 
+              borderColor={borderColor}
+              overflowY="auto" 
+              bg={panelBg}
+            >
+              <Heading size="md" mb={4} color={useColorModeValue("blue.600", "blue.400")}>
+                Problem Statement
+              </Heading>
+              <Text fontSize="md" mb={4} color={textColor}>
+                You are given a Binary Tree of 'N' nodes with integer values. Find the LCA (Lowest Common Ancestor) of three nodes: N1, N2, and N3.
+              </Text>
+              <Box 
+                bg={useColorModeValue("blue.50", "blue.900")}
+                color={useColorModeValue("blue.800", "blue.200")}
+                px={3} 
+                py={1} 
+                rounded="md" 
+                display="inline-block" 
+                mb={4}
+                border="1px solid"
+                borderColor={useColorModeValue("blue.200", "blue.800")}
+              >
+                Lab: JavaScript Basics
+              </Box>
+              <Textarea
+                readOnly
+                value={`For example: LCA of (7, 8, 10) is 1`}
+                size="sm"
+                height="70%"
+                bg={useColorModeValue("gray.100", "gray.700")}
+                color={textColor}
+                border="none"
+                fontSize="14px"
+                resize="auto"
+                _focus={{ boxShadow: "none" }}
+              />
+            </Box>
+          )}
+
+          <Box width={isFullScreen ? "100%" : "65%"} pt={2} display="flex" flexDirection="column">
+            <Box position="relative" zIndex="dropdown">
+              <Flex justify="space-between" align="center" mb={2} px={4}>
+                <LanguageSelector language={language} onSelect={onSelect} colorMode={colorMode} />
+                <Flex align="center" gap={2}>
+                  <Button
+                    leftIcon={<FiPlay />}
+                    colorScheme="blue"
+                    size="sm"
+                    onClick={handleRunCode}
+                    isLoading={isExecuting}
+                    loadingText="Running"
+                    variant="solid"
+                  >
+                    Run
+                  </Button>
+                  <Button
+                    leftIcon={<FiSave />}
+                    colorScheme="green"
+                    size="sm"
+                    onClick={handleSubmitCode}
+                    isLoading={isSubmitting}
+                    loadingText="Submitting"
+                    variant="solid"
+                  >
+                    Submit
+                  </Button>
+                </Flex>
+              </Flex>
+            </Box>
+
+            <Box flex="1" overflow="auto" mb={4} position="relative" zIndex="base" height="auto">
+              <MonacoEditor
+                height="100%"
+                language={language}
+                theme={colorMode === "light" ? "vs" : "vs-dark"}
+                value={code}
+                onChange={handleEditorChange}
+                onMount={onMount}
+                options={{
+                  selectOnLineNumbers: true,
+                  minimap: { enabled: false },
+                  wordWrap: "on",
+                  automaticLayout: true,
+                  fontSize: 14,
+                }}
+                loading={<Spinner color="blue.500" size="xl" />}
+              />
+            </Box>
+
+            <Box flex="1" overflow="auto" borderTop="1px solid" borderColor={borderColor} p={2} bg={panelBg}>
+              <ResultPanel 
+                output={output}
+                isError={isError}
+                isLoading={isExecuting || isSubmitting}
+                status={status}
+                colorMode={colorMode}
+              />
+              <Tabs variant="enclosed" height="100%">
+                <TabList>
+                  <Tab _selected={{ color: "white", bg: useColorModeValue("blue.500", "blue.600") }}>
+                    Console
+                  </Tab>
+                  <Tab _selected={{ color: "white", bg: useColorModeValue("blue.500", "blue.600") }}>
+                    Test Results
+                  </Tab>
+                </TabList>
+                <TabPanels height="calc(100% - 40px)" overflowY="auto">
+                  <TabPanel p={0} height="100%">
+                    <Output
+                      output={output}
+                      isError={isError}
+                      isLoading={isExecuting}
+                      colorMode={colorMode}
+                    />
+                  </TabPanel>
+                  <TabPanel p={0} height="100%">
+                    <Output
+                      output={executionResult}
+                      isError={isError}
+                      isLoading={isSubmitting}
+                      colorMode={colorMode}
+                    />
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
+            </Box>
+          </Box>
+        </Flex>
+      </Flex>
+    </Box>
   );
 };
 

@@ -1,15 +1,17 @@
 import React, { useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate} from "react-router-dom";
 import { ChevronLeft, CheckCircle, Clock, AlertCircle } from "lucide-react";
-import { Flex, Portal, Select, Spacer, createListCollection } from "@chakra-ui/react"
+import { Flex, Portal, Select, Spacer, createListCollection,Container,Center } from "@chakra-ui/react"
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { fetchSubmissions } from "@/api/user";
+import Loader from "@/components/Loader";
 
 const ViewSubmissions = () => {
   const { assignmentid } = useParams();
   const navigate = useNavigate();
   const [submissions, setSubmissions] = useState([]);
+  const [loading,setLoading] = useState(true);
 
   const token = localStorage.getItem('token');
   const decoded_id = decodeURIComponent(assignmentid.replace(/\s+/g, '-'));
@@ -31,7 +33,9 @@ const ViewSubmissions = () => {
   },[token]);
 
   useEffect(()=>{
-    console.log(submissions);
+    if(submissions != undefined){
+      setLoading(false);
+    }
   })
 
 
@@ -107,70 +111,75 @@ const ViewSubmissions = () => {
 
 
       {/* Table */}
+      {loading ? <Container fluid p={'100px'} alignContent={'center'}>
+      <Center><Loader /></Center>
+    </Container>:
       <div style={styles.tableContainer}>
-        <table style={styles.table}>
-          <thead>
-            <tr style={styles.tableHeader}>
-              <th style={styles.th}>Student Name</th>
-              <th style={styles.th}>Branch</th>
-              <th style={styles.th}>Status</th>
-              <th style={styles.th}>Submitted On</th>
-              <th style={styles.th}>Actions</th>
+      <table style={styles.table}>
+        <thead>
+          <tr style={styles.tableHeader}>
+            <th style={styles.th}>Student Name</th>
+            <th style={styles.th}>Branch</th>
+            <th style={styles.th}>Status</th>
+            <th style={styles.th}>Submitted On</th>
+            <th style={styles.th}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filt == "pending" ?
+           submissions.filter((ob)=>{
+            return ob.status == false
+           }).map((assignment) => (
+            <tr key={assignment._id} style={styles.tableRow}>
+              <td style={styles.td}>{assignment.student.name}</td>
+              <td style={styles.td}>{assignment.student.department}</td>
+              <td style={styles.td}>
+                <div style={styles.statusCell}>
+                  {getStatusIcon("Pending")}
+                  <span>Pending</span>
+                </div>
+              </td>
+              <td style={styles.td}>NA</td>
+              <td style={styles.td}>
+                <button
+                  style={styles.viewButton}
+                  onClick={""}
+                >
+                  View
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {filt == "pending" ?
-             submissions.filter((ob)=>{
-              return ob.status == false
-             }).map((assignment) => (
-              <tr key={assignment._id} style={styles.tableRow}>
-                <td style={styles.td}>{assignment.student.name}</td>
-                <td style={styles.td}>{assignment.student.department}</td>
-                <td style={styles.td}>
-                  <div style={styles.statusCell}>
-                    {getStatusIcon("Pending")}
-                    <span>Pending</span>
-                  </div>
-                </td>
-                <td style={styles.td}>NA</td>
-                <td style={styles.td}>
-                  <button
-                    style={styles.viewButton}
-                    onClick={""}
-                  >
-                    View
-                  </button>
-                </td>
-              </tr>
-            ))
-             :
-             submissions.filter((ob)=>{
-              return ob.status == true
-             }).map((assignment) => (
-              <tr key={assignment._id} style={styles.tableRow}>
-                <td style={styles.td}>{assignment.student.name}</td>
-                <td style={styles.td}>{assignment.student.department}</td>
-                <td style={styles.td}>
-                  <div style={styles.statusCell}>
-                    {getStatusIcon("Completed")}
-                    <span>Pending</span>
-                  </div>
-                </td>
-                <td style={styles.td}>{assignment.submission_date.substring(0,10)}</td>
-                <td style={styles.td}>
-                  <button
-                    style={styles.viewButton}
-                    onClick={""}
-                  >
-                    View
-                  </button>
-                </td>
-              </tr>
-            ))
-            }
-          </tbody>
-        </table>
-      </div>
+          ))
+           :
+           submissions.filter((ob)=>{
+            console.log(ob.status == true ? ob : "")
+            return ob.status == true
+           }).map((assignment) => (
+            <tr key={assignment._id} style={styles.tableRow}>
+              <td style={styles.td}>{assignment.student.name}</td>
+              <td style={styles.td}>{assignment.student.department}</td>
+              <td style={styles.td}>
+                <div style={styles.statusCell}>
+                  {getStatusIcon("Completed")}
+                  <span>Pending</span>
+                </div>
+              </td>
+              <td style={styles.td}>{assignment.submission_date != null ? assignment.submission_date.substring(0,10) : "NA"}</td>
+              <td style={styles.td}>
+                <button
+                  style={styles.viewButton}
+                  onClick={""}
+                >
+                  View
+                </button>
+              </td>
+            </tr>
+          ))
+          }
+        </tbody>
+      </table>
+    </div>
+      }
     </motion.div>
   );
 };

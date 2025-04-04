@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { color, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Toaster, toaster } from '@/components/ui/toaster';
 import { ArrowLeft, Calendar } from 'lucide-react';
 import { addAssignment, fetchUserData } from '@/api/user';
 
@@ -20,7 +21,7 @@ const CreateAssignment = () => {
     try{
       const teacher = await fetchUserData(token);
       await addAssignment({assignor:teacher._id,teacher:teacher.name,title:formData.title,description:formData.description,due:formData.dueDate},token);
-      alert("Assignment added!");
+      alert("Assignment added successfully!");
     }catch(error){
         console.log("Error: ",error);
         alert("Something went wrong, try again..");
@@ -29,6 +30,7 @@ const CreateAssignment = () => {
 
   return (
     <div style={styles.container}>
+      <Toaster />
       <motion.button
         style={styles.backButton}
         onClick={() => navigate('/teacher')}

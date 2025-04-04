@@ -16,7 +16,6 @@ const userDetails = async (req,res)=>{
 }
 
 const fetchSubmissions = async (req,res) => {
-    console.log(req.query.id);
     try{
         const data = await Submission.find({assignment:req.query.id}).populate('student').populate('assignment');
         res.json(data);
@@ -67,10 +66,8 @@ const fetchAssignments = async (req,res) => {
 const pending_completed_Assignments = async (req,res) => {
     try{
         const user_id = req.user.id;
-        console.log(user_id);
         const pending = await Submission.find({student:user_id,status : false}).populate('assignment');
         const completed = await Submission.find({student : user_id,status : true}).populate('assignment');
-        console.log(pending);
         res.json({pending,completed});
     }catch(error){
         console.log("Error fetching assignments: ",error);

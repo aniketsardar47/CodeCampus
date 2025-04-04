@@ -14,6 +14,7 @@ function Register() {
   const [branch,setBranch] = useState("CS");
 
   const [emailerr, setEmailerr] = useState("");
+  const [passerr, setPasserr] = useState("");
   const [showpass, setShowpass] = useState(true);
 
   const validateEmail = () => {
@@ -22,6 +23,15 @@ function Register() {
     }
     else {
       setEmailerr("");
+    }
+  }
+
+  const validatePassword = () => {
+    if (!/^.{8}$/.test(password)) {
+      setPasserr("password must 8 characters long!");
+    }
+    else {
+      setPasserr("");
     }
   }
 
@@ -126,7 +136,10 @@ function Register() {
                 <path d="m336 512h-288c-26.453125 0-48-21.523438-48-48v-224c0-26.476562 21.546875-48 48-48h288c26.453125 0 48 21.523438 48 48v224c0 26.476562-21.546875 48-48 48zm-288-288c-8.8125 0-16 7.167969-16 16v224c0 8.832031 7.1875 16 16 16h288c8.8125 0 16-7.167969 16-16v-224c0-8.832031-7.1875-16-16-16zm0 0" />
                 <path d="m304 224c-8.832031 0-16-7.167969-16-16v-80c0-52.929688-43.070312-96-96-96s-96 43.070312-96 96v80c0 8.832031-7.167969 16-16 16s-16-7.167969-16-16v-80c0-70.59375 57.40625-128 128-128s128 57.40625 128 128v80c0 8.832031-7.167969 16-16 16zm0 0" />
               </svg>
-              <input className="input" value={password} type={showpass ? 'password' : 'text'} required onChange={(e) => setPass(e.target.value)} placeholder="Enter your Password" />
+              <input className="input" value={password} type={showpass ? 'password' : 'text'} required onChange={(e) => {
+                setPass(e.target.value);
+                validatePassword();
+              }} placeholder="Enter your Password" />
               <svg
                 onClick={() => setShowpass(!showpass)}
                 className="eye-icon"
@@ -144,6 +157,7 @@ function Register() {
                 )}
               </svg>
             </div>
+            {passerr && <Text color={'red'}>{passerr}</Text>}
             <button className="button-submit" type='submit'>Sign In</button>
             <p className="p">Already a user? <span className="span" onClick={() => navigate('/login')}>Login</span></p>
           </form>

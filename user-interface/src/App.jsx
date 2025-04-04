@@ -8,9 +8,7 @@ import TeachDash from "./pages/Teacher/TeachDash";
 import CreateAssignment from "./pages/Teacher/CreateAssignment";
 import LandingPage from "./pages/Landing";
 import ViewSubmissions from "./pages/Teacher/ViewSubmissions";
-
-
-
+import MainEditor from "./pages/Editor/Main_Editor";
 
 function App() {
   return (
@@ -23,6 +21,7 @@ function App() {
     {/* Student Routes */}
    <Route element={<ProtectedRoute allowedRole={['Student']}/>}>
      <Route element={<StudDash/>} path='/student'/>
+     <Route element={<MainEditor/>} path='/editor/:assignmentid' />
    </Route>
 
      {/* Teacher Routes */}
