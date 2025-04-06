@@ -6,7 +6,6 @@ import {
   Textarea,
   Heading,
   Text,
-  IconButton,
   Spinner,
 
 
@@ -20,10 +19,9 @@ import {
 } from "@chakra-ui/tabs"
 
 import { CiAlarmOn,CiAlarmOff } from "react-icons/ci";
-
-import {
-  useToast,
-} from "@chakra-ui/toast";
+import { useNavigate } from "react-router-dom";
+import {showToast} from "./showToaster.jsx";
+import { ToastContainer, toast } from 'react-toastify';
 import { MdTimer,MdTimerOff  } from "react-icons/md";
 import {  FiMaximize, FiMinimize, FiPlay, FiSave } from "react-icons/fi";
 import MonacoEditor from "@monaco-editor/react";
@@ -46,9 +44,64 @@ const MainEditor = () => {
   const [isError, setIsError] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const toast = useToast();
+
   const [timerstatus, setTimerstatus] = useState(false);
   const [status, setStatus] = useState("run");
+
+
+  // New state for focus tracking
+  const [focusChangeCount, setFocusChangeCount] = useState(0);
+  const [isWarningShown, setIsWarningShown] = useState(false);
+  const focusChangeLimit = 3;
+  const navigate = useNavigate(); // If using React Router
+
+  // Focus change detection
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setFocusChangeCount(prev => prev + 1);
+      }
+    };
+
+    const handleBlur = () => {
+      setFocusChangeCount(prev => prev + 1);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, []);
+
+  // Handle focus change count
+  useEffect(() => {
+    if (focusChangeCount > 0 && focusChangeCount <= focusChangeLimit) {
+      const remainingAttempts = focusChangeLimit - focusChangeCount;
+
+      if (!isWarningShown) {
+        showToast(
+            "Warning",
+            `Please stay focused! ${remainingAttempts} ${remainingAttempts === 1 ? 'attempt' : 'attempts'} remaining before you'll be redirected.`,
+            "warning"
+        );
+        setIsWarningShown(true);
+
+        const timer = setTimeout(() => setIsWarningShown(false), 5000);
+        return () => clearTimeout(timer);
+      }
+    } else if (focusChangeCount > focusChangeLimit) {
+
+      showToast("Redirecting", "You've exceeded the focus change limit", "error");
+      setTimeout(() => {
+        navigate("/"); // Using React Router
+        // OR window.location.href = "/"; // If not using React Router
+      }, 2000);
+    }
+  }, [focusChangeCount, focusChangeLimit, isWarningShown, navigate]);
+
 
   useEffect(() => {
     let timer;
@@ -96,7 +149,9 @@ const MainEditor = () => {
   const onMount = (editor) => {
     editorRef.current = editor;
     editor.focus();
+    editor.updateOptions({ contextmenu: false });
     showToast("Editor", "Editor ready", "success");
+
   };
 
   const onSelect = (selectedLanguage) => {
@@ -281,6 +336,8 @@ const MainEditor = () => {
                       automaticLayout: true,
                       fontSize: 14,
                     }}
+
+
                     loading={<Spinner color="blue.500" size="xl" />}
                 />
               </Box>
@@ -318,7 +375,18 @@ const MainEditor = () => {
             </Box>
           </Flex>
         </Flex>
+        <ToastContainer position="bottom-left"
+                        autoClose={5000}
+                        hideProgressBar={false}
+                        newestOnTop={false}
+                        closeOnClick={false}
+                        rtl={false}
+                        pauseOnFocusLoss
+                        draggable
+                        pauseOnHover
+                        theme="dark" />
       </Box>
+
   );
 };
 
