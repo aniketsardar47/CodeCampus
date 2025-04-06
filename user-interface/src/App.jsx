@@ -8,7 +8,7 @@ import TeachDash from "./pages/Teacher/TeachDash";
 import CreateAssignment from "./pages/Teacher/CreateAssignment";
 import LandingPage from "./pages/Landing";
 import ViewSubmissions from "./pages/Teacher/ViewSubmissions";
-import Main_Editor from "@/pages/Editor/Main_Editor.jsx";
+import MainEditor from "./pages/Editor/Main_Editor";
 
 
 
@@ -20,8 +20,8 @@ function App() {
    <Routes>
     <Route element={<LandingPage/>} path="/" />
      <Route element={<Login/>} path='/login'/>
-     <Route element={<Register/>} path='/signup'/>
-     <Route element={<Main_Editor/>} path='/editor'/>
+     <Route element={<Register/>} path='/signup'/>  
+     <Route element={<MainEditor/>} path="/editor"/>  
          
     {/* Student Routes */}
    <Route element={<ProtectedRoute allowedRole={['Student']}/>}>
