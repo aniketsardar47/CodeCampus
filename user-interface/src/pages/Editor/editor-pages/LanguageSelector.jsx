@@ -16,7 +16,7 @@ import { LANGUAGE_VERSIONS } from "../constants.jsx";
 const languages = Object.entries(LANGUAGE_VERSIONS);
 const ACTIVE_COLOR = "blue.400";
 
-const LanguageSelector = ({ language, onSelect }) => {
+const LanguageSelector = ({ language, onSelect  }) => {
   return (
     <Box ml={2} mb={4} >
       <Text mb={2} fontSize="lg" gap={10}>
