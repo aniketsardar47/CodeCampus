@@ -56,7 +56,7 @@ const CreateAssignment = () => {
         </div>
 
         <div style={styles.formGroup}>
-          <label style={styles.label}>Description*</label>
+          <label style={styles.label}>Problem Statement</label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({...formData, description: e.target.value})}

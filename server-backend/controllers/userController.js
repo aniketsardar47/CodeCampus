@@ -1,6 +1,7 @@
 const Assignment = require('../models/Assignment');
 const Submission = require('../models/Submission');
 const User = require('../models/Users');
+const mongoose = require('mongoose')
 
 const userDetails = async (req,res)=>{
     try{
@@ -39,7 +40,10 @@ const addAssignment = async (req,res)=> {
             assignment : new_ass._id,
             student: student._id,
             status: false,
-            submission_date : ""
+            submission_date : "",
+            code: "",
+            output: "",
+            lock : false
         }));
 
         await Submission.insertMany(submissions);
@@ -75,5 +79,31 @@ const pending_completed_Assignments = async (req,res) => {
     }
 }
 
+const updateLock = async (req,res) => {
+    try{
+        let {submissionId,key} = req.body;
 
-module.exports = {userDetails,addAssignment,fetchAssignments,fetchSubmissions,pending_completed_Assignments};
+        if (!submissionId) {
+            return res.status(400).json({ message: "Invalid ID" });
+          }
+
+        const submission = await Submission.findById(submissionId);
+        if (!submission) {
+            return res.status(404).json({ message: "Submission not found" });
+          }
+
+        if(submission.lock != key){
+        await Submission.updateOne({_id:submission._id},{$set:{lock: key}})
+        }
+        res.status(201).json({
+            message: "Lock updated!"
+        });
+    }
+    catch(error){
+        console.log("Error updating: ",error);
+        res.status(500).json({error: "Internal Server Error"})
+    }
+}
+
+
+module.exports = {userDetails,addAssignment,fetchAssignments,fetchSubmissions,pending_completed_Assignments,updateLock};

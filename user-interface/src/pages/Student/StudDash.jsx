@@ -67,8 +67,8 @@ const StudDash = () => {
 
   const navigate = useNavigate();
 
-  const handleGoToEditor = (assignmentId) => {
-    navigate(`/editor/${assignmentId}`);
+  const handleGoToEditor = (submissionId) => {
+    navigate(`/editor/:${submissionId}`);
   };
 
   const toggleView = () => {

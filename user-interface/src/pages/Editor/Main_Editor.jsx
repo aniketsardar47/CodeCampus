@@ -1,35 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  Box,
-  Flex,
-  Button,
-  Textarea,
-  Heading,
-  Text,
-  IconButton,
-  Spinner,
-} from "@chakra-ui/react";
-import { useColorMode,useColorModeValue } from "@/components/ui/color-mode";
-import {
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-} from "@chakra-ui/tabs"
-import { CiAlarmOn, CiAlarmOff } from "react-icons/ci";
-import { useToast } from "@chakra-ui/toast";
-import { MdTimer, MdTimerOff } from "react-icons/md";
-import { FiMaximize, FiMinimize, FiPlay, FiSave, FiSun, FiMoon } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import MonacoEditor from "@monaco-editor/react";
-import LanguageSelector from "./editor-pages/LanguageSelector";
+import { MdTimer, MdTimerOff, MdLightMode, MdDarkMode } from "react-icons/md";
+import { FiMaximize, FiMinimize, FiPlay, FiSave } from "react-icons/fi";
+import Navbar from "./navbar";
 import { CODE_SNIPPETS } from "./constants.jsx";
-import Output from "./editor-pages/Output";
 import { executeCode, submitCode } from "./api.jsx";
 import ResultPanel from "./editor-pages/ResultPanel";
+import { showToast } from "./showToaster";
 
 const MainEditor = () => {
-  const { colorMode, toggleColorMode } = useColorMode();
+  const [darkMode, setDarkMode] = useState(false);
   const editorRef = useRef();
   const [code, setCode] = useState(CODE_SNIPPETS["javascript"]);
   const [language, setLanguage] = useState("javascript");
@@ -41,17 +24,107 @@ const MainEditor = () => {
   const [isError, setIsError] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const toast = useToast();
   const [timerstatus, setTimerstatus] = useState(false);
-  const [status, setStatus] = useState("run");
+  const [activeTab, setActiveTab] = useState("console");
 
-  // Color mode values
-  const bgColor = useColorModeValue("gray.50", "gray.900");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const textColor = useColorModeValue("gray.800", "gray.100");
-  const editorBg = useColorModeValue("white", "#1e1e1e");
-  const panelBg = useColorModeValue("white", "gray.800");
-  const buttonBg = useColorModeValue("gray.100", "gray.700");
+  const navigate = useNavigate();
+  const [focusChangeCount, setFocusChangeCount] = useState(0);
+  const [isWarningShown, setIsWarningShown] = useState(false);
+  const focusChangeLimit = 3;
+
+  const theme = {
+    light: {
+      bg: '#f5f5f5',
+      text: '#262626',
+      panelBg: '#ffffff',
+      border: '#e5e7eb',
+      button: '#f3f4f6',
+      buttonHover: '#e5e7eb',
+      buttonText: '#374151',
+      editorBg: '#ffffff',
+      tabSelected: '#4361ee',
+      tabUnselected: '#f3f4f6',
+      icon: '#4b5563',
+      success: '#10b981',
+      error: '#ef4444',
+      warning: '#f59e0b',
+      outputBg: '#ffffff',
+      consoleHeader: '#f9fafb',
+      consoleText: '#1f2937',
+      consoleBorder: '#e5e7eb',
+      problemBg: '#ffffff',
+      problemText: '#374151',
+      problemBorder: '#e5e7eb'
+    },
+    dark: {
+      bg: '#1e1e1e',
+      text: '#e5e5e5',
+      panelBg: '#252526',
+      border: '#3e3e42',
+      button: '#2d2d30',
+      buttonHover: '#3e3e40',
+      buttonText: '#ffffff',
+      editorBg: '#1e1e1e',
+      tabSelected: '#4361ee',
+      tabUnselected: '#2d30',
+      icon: '#ffffff',
+      success: '#4CAF50',
+      error: '#F44336',
+      warning: '#FFA000',
+      outputBg: '#1e1e1e',
+      consoleHeader: '#252526',
+      consoleText: '#e5e5e5',
+      consoleBorder: '#3e3e42',
+      problemBg: '#252526',
+      problemText: '#e5e5e5',
+      problemBorder: '#3e3e42'
+    }
+  };
+
+  const currentTheme = darkMode ? theme.dark : theme.light;
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setFocusChangeCount(prev => prev + 1);
+      }
+    };
+
+    const handleBlur = () => {
+      setFocusChangeCount(prev => prev + 1);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (focusChangeCount > 0 && focusChangeCount <= focusChangeLimit) {
+      const remainingAttempts = focusChangeLimit - focusChangeCount;
+
+      if (!isWarningShown) {
+        showToast(
+          "Warning",
+          `Please stay focused! ${remainingAttempts} ${remainingAttempts === 1 ? 'attempt' : 'attempts'} remaining before you'll be redirected.`,
+          "warning"
+        );
+        setIsWarningShown(true);
+
+        const timer = setTimeout(() => setIsWarningShown(false), 5000);
+        return () => clearTimeout(timer);
+      }
+    } else if (focusChangeCount > focusChangeLimit) {
+      showToast("Redirecting", "You've exceeded the focus change limit", "error");
+      setTimeout(() => {
+        navigate("/student");
+      }, 2000);
+    }
+  }, [focusChangeCount, focusChangeLimit, isWarningShown, navigate]);
 
   useEffect(() => {
     let timer;
@@ -63,22 +136,16 @@ const MainEditor = () => {
     return () => clearInterval(timer);
   }, [isRunning]);
 
-  const showToast = (title, description, status) => {
-    toast({
-      title,
-      description,
-      status,
-      duration: 5000,
-      isClosable: true,
-      position: "top-right",
-    });
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
+    showToast(`Switched to ${!darkMode ? 'dark' : 'light'} mode`);
   };
 
   const toggleTimer = () => {
     const action = isRunning ? "paused" : "started";
     setTimerstatus(!timerstatus);
     setIsRunning((prev) => !prev);
-    showToast("Timer", `Timer ${action}`, "info");
+    showToast(`Timer ${action}`);
   };
 
   const formatTime = (secs) => {
@@ -89,7 +156,7 @@ const MainEditor = () => {
 
   const toggleFullScreen = () => {
     setIsFullScreen((prev) => !prev);
-    showToast("View", isFullScreen ? "Exited fullscreen" : "Entered fullscreen", "info");
+    showToast(isFullScreen ? "Exited fullscreen" : "Entered fullscreen");
   };
 
   const handleEditorChange = (value) => {
@@ -99,25 +166,26 @@ const MainEditor = () => {
   const onMount = (editor) => {
     editorRef.current = editor;
     editor.focus();
+    editor.updateOptions({ contextmenu: false });
     showToast("Editor", "Editor ready", "success");
   };
 
   const onSelect = (selectedLanguage) => {
     setLanguage(selectedLanguage);
     setCode(CODE_SNIPPETS[selectedLanguage]);
-    showToast("Language", `Switched to ${selectedLanguage}`, "success");
+    showToast(`Switched to ${selectedLanguage}`);
   };
 
   const handleRunCode = async () => {
     if (!editorRef.current) {
-      showToast("Error", "Editor is not ready", "error");
+      showToast("Editor is not ready", true);
       return;
     }
 
     setIsExecuting(true);
-    setStatus("run")
-    setOutput("Running code...");
+    setOutput(null);
     setIsError(false);
+    setActiveTab("console");
 
     try {
       const sourceCode = editorRef.current.getValue();
@@ -126,15 +194,15 @@ const MainEditor = () => {
       if (result.stderr) {
         setIsError(true);
         setOutput(result.stderr);
-        showToast("Execution Failed", "Code contains errors", "error");
+        showToast("Code contains errors", true);
       } else {
-        setOutput(result.output);
-        showToast("Success", "Code executed successfully", "success");
+        setOutput(result.output || "Code executed successfully with no output");
+        showToast("Code executed successfully");
       }
     } catch (error) {
       setIsError(true);
       setOutput(`Error: ${error.message}`);
-      showToast("Execution Error", error.message, "error");
+      showToast(error.message, true);
     } finally {
       setIsExecuting(false);
     }
@@ -142,13 +210,13 @@ const MainEditor = () => {
 
   const handleSubmitCode = async () => {
     if (!editorRef.current) {
-      showToast("Error", "Editor is not ready", "error");
+      showToast("Editor is not ready", true);
       return;
     }
-    setStatus("submit")
     setIsSubmitting(true);
-    setExecutionResult("Running tests...");
+    setExecutionResult(null);
     setIsError(false);
+    setActiveTab("results");
 
     try {
       const sourceCode = editorRef.current.getValue();
@@ -157,157 +225,280 @@ const MainEditor = () => {
       if (!submission.success) {
         setIsError(true);
         setExecutionResult(submission.details || submission.message);
-        showToast("Submission Failed", submission.message, "error");
+        showToast(submission.message, true);
       } else {
         setExecutionResult({
           summary: submission.message,
           details: submission.results,
           executionTime: submission.executionTime,
         });
-        showToast(
-          "Submission Successful",
-          submission.message,
-          submission.passed ? "success" : "warning"
-        );
+        showToast(submission.message, !submission.passed);
       }
     } catch (error) {
       setIsError(true);
       setExecutionResult(`Error: ${error.message}`);
-      showToast("Submission Error", error.message, "error");
+      showToast(error.message, true);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Box bg={bgColor} minH="100vh" color={textColor} overflow="hidden" position="relative">
-      <Flex direction="column" height={isFullScreen ? "100vh" : "calc(100vh - 60px)"}>
-        {/* Top Bar */}
-        <Flex 
-          p={3} 
-          bg={useColorModeValue("gray.800", "gray.900")} 
-          color="white" 
-          justify="space-between" 
-          align="center"
-          borderBottom="1px solid"
-          borderColor={borderColor}
-        >
-          <Flex align="center">
-            <Heading size="md" mr={4} color={useColorModeValue("blue.400", "blue.300")}>
-              Code<span style={{ color: useColorModeValue("#4cc9f0", "#4cc9f0") }}>{'{'}</span>Campus<span style={{ color: useColorModeValue("#4cc9f0", "#4cc9f0") }}>{'}'}</span>
-            </Heading>
-          </Flex>
-          <Flex align="center" gap={3}>
-            <Text fontSize="sm" color={useColorModeValue("gray.300", "gray.400")}>
-              {formatTime(seconds)}
-            </Text>
-            <IconButton
-              icon={timerstatus ? <MdTimerOff /> : <MdTimer />}
-              onClick={toggleTimer}
-              aria-label="Toggle timer"
-              variant="ghost"
-              color={useColorModeValue("gray.300", "gray.400")}
-              _hover={{ bg: "transparent", color: "white" }}
-            />
-            <IconButton
-              icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
-              onClick={toggleColorMode}
-              aria-label="Toggle theme"
-              variant="ghost"
-              color={useColorModeValue("gray.300", "gray.400")}
-              _hover={{ bg: "transparent", color: "white" }}
-            />
-            <IconButton
-              icon={isFullScreen ? <FiMinimize /> : <FiMaximize />}
-              onClick={toggleFullScreen}
-              aria-label="Toggle fullscreen"
-              variant="ghost"
-              color={useColorModeValue("gray.300", "gray.400")}
-              _hover={{ bg: "transparent", color: "white" }}
-            />
-          </Flex>
-        </Flex>
-
-        <Flex flex="1" overflow="hidden">
+    <div style={{
+      backgroundColor: currentTheme.bg,
+      color: currentTheme.text,
+      minHeight: '100vh',
+      overflow: 'hidden',
+      position: 'relative',
+      fontFamily: "'Inter', sans-serif"
+    }}>
+      <Navbar darkMode={darkMode} />
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: isFullScreen ? '100vh' : 'calc(100vh - 80px)'
+      }}>
+        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
           {!isFullScreen && (
-            <Box 
-              width="35%" 
-              p={4} 
-              borderRight="1px solid" 
-              borderColor={borderColor}
-              overflowY="auto" 
-              bg={panelBg}
-            >
-              <Heading size="md" mb={4} color={useColorModeValue("blue.600", "blue.400")}>
-                Problem Statement
-              </Heading>
-              <Text fontSize="md" mb={4} color={textColor}>
-                You are given a Binary Tree of 'N' nodes with integer values. Find the LCA (Lowest Common Ancestor) of three nodes: N1, N2, and N3.
-              </Text>
-              <Box 
-                bg={useColorModeValue("blue.50", "blue.900")}
-                color={useColorModeValue("blue.800", "blue.200")}
-                px={3} 
-                py={1} 
-                rounded="md" 
-                display="inline-block" 
-                mb={4}
-                border="1px solid"
-                borderColor={useColorModeValue("blue.200", "blue.800")}
-              >
-                Lab: JavaScript Basics
-              </Box>
-              <Textarea
-                readOnly
-                value={`For example: LCA of (7, 8, 10) is 1`}
-                size="sm"
-                height="70%"
-                bg={useColorModeValue("gray.100", "gray.700")}
-                color={textColor}
-                border="none"
-                fontSize="14px"
-                resize="auto"
-                _focus={{ boxShadow: "none" }}
-              />
-            </Box>
+            <div style={{
+              width: '35%',
+              padding: '1rem',
+              borderRight: `1px solid ${currentTheme.border}`,
+              overflowY: 'auto',
+              backgroundColor: currentTheme.problemBg
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1rem'
+              }}>
+                <h2 style={{
+                  fontSize: '1.25rem',
+                  fontWeight: 600,
+                  color: currentTheme.text
+                }}>Sum of Infinite Array</h2>
+                <span style={{
+                  fontSize: '0.875rem',
+                  color: currentTheme.text,
+                  opacity: 0.8
+                }}>Moderate</span>
+              </div>
+
+              <div style={{
+                marginBottom: '1rem',
+                padding: '0.75rem',
+                backgroundColor: darkMode ? '#2a2a2a' : '#f8f9fa',
+                borderRadius: '4px',
+                borderLeft: `4px solid ${currentTheme.tabSelected}`
+              }}>
+                <p style={{
+                  fontSize: '0.875rem',
+                  color: currentTheme.text,
+                  marginBottom: '0.5rem'
+                }}>
+                  <strong>Problem Statement:</strong> Given an array "A" of N integers and you have also defined the new array "B" as a concatenation of array "A" for an infinite number of times. For example, if the given array "A" is [1,2,3] then, infinite array "B" is [1,2,3,1,2,3,1,2,3,...].
+                </p>
+                <p style={{
+                  fontSize: '0.875rem',
+                  color: currentTheme.text
+                }}>
+                  Your task is to find the sum of the subarray from index "L" to "R" (both inclusive) in the infinite array "B" for each query. Note: The value of the sum can be very large, return the answer as modulus 10^9+7.
+                </p>
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <h3 style={{
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: currentTheme.text,
+                  marginBottom: '0.5rem'
+                }}>Constraints:</h3>
+                <ul style={{
+                  fontSize: '0.875rem',
+                  color: currentTheme.text,
+                  paddingLeft: '1.25rem',
+                  marginBottom: '1rem'
+                }}>
+                  <li>1 ≤ T ≤ 100</li>
+                  <li>1 ≤ N ≤ 10^4</li>
+                  <li>1 ≤ A[i] ≤ 10^9</li>
+                  <li>1 ≤ Q ≤ 10^4</li>
+                  <li>1 ≤ L ≤ R ≤ 10^18</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 style={{
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: currentTheme.text,
+                  marginBottom: '0.5rem'
+                }}>Example:</h3>
+                <div style={{
+                  backgroundColor: darkMode ? '#2a2a2a' : '#f8f9fa',
+                  padding: '0.75rem',
+                  borderRadius: '4px',
+                  marginBottom: '0.5rem'
+                }}>
+                  <p style={{
+                    fontSize: '0.875rem',
+                    color: currentTheme.text,
+                    marginBottom: '0.25rem'
+                  }}>
+                    <strong>Input:</strong> A = [1,2,3], Q = 2, queries = [[1,3], [4,6]]
+                  </p>
+                  <p style={{
+                    fontSize: '0.875rem',
+                    color: currentTheme.text
+                  }}>
+                    <strong>Output:</strong> [6, 6]
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
 
-          <Box width={isFullScreen ? "100%" : "65%"} pt={2} display="flex" flexDirection="column">
-            <Box position="relative" zIndex="dropdown">
-              <Flex justify="space-between" align="center" mb={2} px={4}>
-                <LanguageSelector language={language} onSelect={onSelect} colorMode={colorMode} />
-                <Flex align="center" gap={2}>
-                  <Button
-                    leftIcon={<FiPlay />}
-                    colorScheme="blue"
-                    size="sm"
-                    onClick={handleRunCode}
-                    isLoading={isExecuting}
-                    loadingText="Running"
-                    variant="solid"
-                  >
-                    Run
-                  </Button>
-                  <Button
-                    leftIcon={<FiSave />}
-                    colorScheme="green"
-                    size="sm"
-                    onClick={handleSubmitCode}
-                    isLoading={isSubmitting}
-                    loadingText="Submitting"
-                    variant="solid"
-                  >
-                    Submit
-                  </Button>
-                </Flex>
-              </Flex>
-            </Box>
+          <div style={{
+            width: isFullScreen ? '100%' : '65%',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '0.5rem',
+              padding: '0 0.5rem',
+              position: 'relative',
+              zIndex: 1000
+            }}>
+              <div style={{
+                position: 'relative',
+                zIndex: 1001,
+              }}>
+                <select
+                  value={language}
+                  onChange={(e) => onSelect(e.target.value)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '4px',
+                    backgroundColor: darkMode ? '#252526' : '#ffffff',
+                    color: darkMode ? '#e0e0e0' : '#333333',
+                    border: darkMode ? '1px solid #3e3e42' : '1px solid #cccccc',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontFamily: "'Segoe UI', 'Roboto', sans-serif",
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.1)',
+                    outline: 'none',
+                    minWidth: '180px'
+                  }}
+                >
+                  <option value="javascript">JavaScript</option>
+                  <option value="cpp">C++</option>
+                  <option value="java">Java</option>
+                  <option value="python">Python</option>
+                </select>
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <button
+                  onClick={toggleTheme}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: currentTheme.icon,
+                    fontSize: '1.25rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0.25rem',
+                    borderRadius: '4px',
+                    transition: 'background-color 0.2s'
+                  }}
+                  aria-label="Toggle theme"
+                >
+                  {darkMode ? <MdLightMode /> : <MdDarkMode />}
+                </button>
+                <button
+                  onClick={handleRunCode}
+                  disabled={isExecuting}
+                  style={{
+                    backgroundColor: currentTheme.button,
+                    color: currentTheme.buttonText,
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '0.5rem 1rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    transition: 'background-color 0.2s',
+                    opacity: isExecuting ? 0.7 : 1,
+                    pointerEvents: isExecuting ? 'none' : 'auto'
+                  }}
+                >
+                  <FiPlay />
+                  {isExecuting ? 'Running...' : 'Run'}
+                </button>
+                <button
+                  onClick={handleSubmitCode}
+                  disabled={isSubmitting}
+                  style={{
+                    backgroundColor: currentTheme.button,
+                    color: currentTheme.buttonText,
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '0.5rem 1rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    transition: 'background-color 0.2s',
+                    opacity: isSubmitting ? 0.7 : 1,
+                    pointerEvents: isSubmitting ? 'none' : 'auto'
+                  }}
+                >
+                  <FiSave />
+                  {isSubmitting ? 'Submitting...' : 'Submit'}
+                </button>
+                <button
+                  onClick={toggleFullScreen}
+                  style={{
+                    backgroundColor: currentTheme.button,
+                    color: currentTheme.buttonText,
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    transition: 'background-color 0.2s'
+                  }}
+                  aria-label={isFullScreen ? "Exit fullscreen" : "Enter fullscreen"}
+                >
+                  {isFullScreen ? <FiMinimize /> : <FiMaximize />}
+                </button>
+              </div>
+            </div>
 
-            <Box flex="1" overflow="auto" mb={4} position="relative" zIndex="base" height="auto">
+            <div style={{
+              flex: 1,
+              overflow: 'hidden',
+              position: 'relative',
+              zIndex: 1
+            }}>
               <MonacoEditor
                 height="100%"
                 language={language}
-                theme={colorMode === "light" ? "vs" : "vs-dark"}
+                theme={darkMode ? 'vs-dark' : 'vs'}
                 value={code}
                 onChange={handleEditorChange}
                 onMount={onMount}
@@ -317,52 +508,103 @@ const MainEditor = () => {
                   wordWrap: "on",
                   automaticLayout: true,
                   fontSize: 14,
+                  scrollBeyondLastLine: false,
+                  renderWhitespace: 'none',
+                  padding: { top: 10 },
+                  lineNumbersMinChars: 3,
+                  fixedOverflowWidgets: true,
                 }}
-                loading={<Spinner color="blue.500" size="xl" />}
               />
-            </Box>
+            </div>
 
-            <Box flex="1" overflow="auto" borderTop="1px solid" borderColor={borderColor} p={2} bg={panelBg}>
-              <ResultPanel 
-                output={output}
-                isError={isError}
-                isLoading={isExecuting || isSubmitting}
-                status={status}
-                colorMode={colorMode}
-              />
-              <Tabs variant="enclosed" height="100%">
-                <TabList>
-                  <Tab _selected={{ color: "white", bg: useColorModeValue("blue.500", "blue.600") }}>
-                    Console
-                  </Tab>
-                  <Tab _selected={{ color: "white", bg: useColorModeValue("blue.500", "blue.600") }}>
-                    Test Results
-                  </Tab>
-                </TabList>
-                <TabPanels height="calc(100% - 40px)" overflowY="auto">
-                  <TabPanel p={0} height="100%">
-                    <Output
-                      output={output}
-                      isError={isError}
-                      isLoading={isExecuting}
-                      colorMode={colorMode}
-                    />
-                  </TabPanel>
-                  <TabPanel p={0} height="100%">
-                    <Output
-                      output={executionResult}
-                      isError={isError}
-                      isLoading={isSubmitting}
-                      colorMode={colorMode}
-                    />
-                  </TabPanel>
-                </TabPanels>
-              </Tabs>
-            </Box>
-          </Box>
-        </Flex>
-      </Flex>
-    </Box>
+            <div style={{
+              height: '30%',
+              minHeight: '30%',
+              borderTop: `1px solid ${currentTheme.border}`,
+              backgroundColor: currentTheme.panelBg,
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <div style={{
+                display: 'flex',
+                borderBottom: `1px solid ${currentTheme.border}`,
+                backgroundColor: currentTheme.consoleHeader
+              }}>
+                <button
+                  onClick={() => setActiveTab("console")}
+                  style={{
+                    padding: '0.75rem 1rem',
+                    backgroundColor: activeTab === "console" ? currentTheme.tabSelected : currentTheme.tabUnselected,
+                    color: activeTab === "console" ? (darkMode ? '#000000' : '#ffffff') : currentTheme.text,
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Console
+                </button>
+                <button
+                  onClick={() => setActiveTab("results")}
+                  style={{
+                    padding: '0.75rem 1rem',
+                    backgroundColor: activeTab === "results" ? currentTheme.tabSelected : currentTheme.tabUnselected,
+                    color: activeTab === "results" ? (darkMode ? '#000000' : '#ffffff') : currentTheme.text,
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Test Results
+                </button>
+              </div>
+              <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '0.75rem',
+                backgroundColor: currentTheme.outputBg
+              }}>
+                {activeTab === "console" ? (
+                  <div style={{
+                    fontFamily: "'Roboto Mono', monospace",
+                    whiteSpace: 'pre-wrap',
+                    height: '100%',
+                    padding: '0.75rem',
+                    backgroundColor: currentTheme.outputBg,
+                    color: darkMode ? '#e0e0e0' : '#1a1a1a'
+                  }}>
+                    {isExecuting ? (
+                      <div>Running code...</div>
+                    ) : output ? (
+                      <div style={{
+                        color: isError ? (darkMode ? '#ff6b6b' : '#d32f2f') : 'inherit'
+                      }}>
+                        {output}
+                      </div>
+                    ) : (
+                      <div style={{ opacity: 0.7 }}>
+                        Click "Run" to execute your code
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <ResultPanel
+                    result={executionResult}
+                    isError={isError}
+                    isLoading={isSubmitting}
+                    darkMode={darkMode}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ToastContainer />
+    </div>
   );
 };
 
