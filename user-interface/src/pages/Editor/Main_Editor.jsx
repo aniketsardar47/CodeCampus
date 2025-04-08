@@ -26,6 +26,7 @@ const MainEditor = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timerstatus, setTimerstatus] = useState(false);
   const [activeTab, setActiveTab] = useState("console");
+  const [userInput, setUserInput] = useState("");
 
   const navigate = useNavigate();
   const [focusChangeCount, setFocusChangeCount] = useState(0);
@@ -189,7 +190,7 @@ const MainEditor = () => {
 
     try {
       const sourceCode = editorRef.current.getValue();
-      const result = await executeCode(language, sourceCode);
+      const result = await executeCode(language, sourceCode, userInput); // Pass userInput to executeCode
 
       if (result.stderr) {
         setIsError(true);
@@ -542,6 +543,7 @@ const MainEditor = () => {
               />
             </div>
 
+            {/* Console/Results panel */}
             <div style={{
               height: '30%',
               minHeight: '30%',
@@ -586,21 +588,44 @@ const MainEditor = () => {
                   Test Results
                 </button>
               </div>
-              <div style={{
-                flex: 1,
-                overflowY: 'auto',
-                padding: '0.75rem',
-                backgroundColor: currentTheme.outputBg
-              }}>
-                {activeTab === "console" ? (
+              {activeTab === "console" ? (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
+                }}>
                   <div style={{
-                    fontFamily: "'Roboto Mono', monospace",
-                    whiteSpace: 'pre-wrap',
-                    height: '100%',
+                    flex: 1,
+                    overflowY: 'auto',
                     padding: '0.75rem',
                     backgroundColor: currentTheme.outputBg,
+                    fontFamily: "'Roboto Mono', monospace",
+                    whiteSpace: 'pre-wrap',
                     color: darkMode ? '#e0e0e0' : '#1a1a1a'
                   }}>
+                    <div style={{
+                      fontSize: '0.875rem',
+                      marginBottom: '0.5rem',
+                      color: currentTheme.text
+                    }}>
+                      Input (for stdin):
+                    </div>
+                    <textarea
+                      value={userInput}
+                      onChange={(e) => setUserInput(e.target.value)}
+                      style={{
+                        width: '100%',
+                        minHeight: '60px',
+                        padding: '0.5rem',
+                        borderRadius: '4px',
+                        border: `1px solid ${currentTheme.border}`,
+                        backgroundColor: currentTheme.editorBg,
+                        color: currentTheme.text,
+                        fontFamily: "'Roboto Mono', monospace",
+                        resize: 'vertical'
+                      }}
+                      placeholder="Enter input for your program (if needed)"
+                    />
                     {isExecuting ? (
                       <div>Running code...</div>
                     ) : output ? (
@@ -615,15 +640,29 @@ const MainEditor = () => {
                       </div>
                     )}
                   </div>
-                ) : (
+                  <div style={{
+                    borderTop: `1px solid ${currentTheme.border}`,
+                    padding: '0.5rem',
+                    backgroundColor: currentTheme.panelBg
+                  }}>
+                    
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  padding: '0.75rem',
+                  backgroundColor: currentTheme.outputBg
+                }}>
                   <ResultPanel
                     result={executionResult}
                     isError={isError}
                     isLoading={isSubmitting}
                     darkMode={darkMode}
                   />
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
