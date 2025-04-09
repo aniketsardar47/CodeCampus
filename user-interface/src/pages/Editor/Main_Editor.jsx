@@ -9,9 +9,21 @@ import Navbar from "./navbar";
 import { CODE_SNIPPETS } from "./constants.jsx";
 import { executeCode, submitCode } from "./api.jsx";
 import ResultPanel from "./editor-pages/ResultPanel";
+import { useParams } from "react-router-dom";
 import { showToast } from "./showToaster";
+import { getSubmission, submitAssignment, updateLock } from "@/api/user";
+import Loader from "@/components/Loader";
+import { Center, Container } from "@chakra-ui/react";
 
 const MainEditor = () => {
+
+  const token = localStorage.getItem('token');
+  let { submissionId } = useParams();
+  submissionId = submissionId.replace(':','');
+  console.log(submissionId)
+
+  const [details,setDetails] = useState(); //assignment,submission,user data
+  const [dataLoad,setDataLoad] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const editorRef = useRef();
   const [code, setCode] = useState(CODE_SNIPPETS["javascript"]);
@@ -31,7 +43,7 @@ const MainEditor = () => {
   const navigate = useNavigate();
   const [focusChangeCount, setFocusChangeCount] = useState(0);
   const [isWarningShown, setIsWarningShown] = useState(false);
-  const focusChangeLimit = 3;
+  const focusChangeLimit = 50;
 
   const theme = {
     light: {
@@ -84,6 +96,21 @@ const MainEditor = () => {
 
   const currentTheme = darkMode ? theme.dark : theme.light;
 
+  useEffect(()=>{
+    const getDetails = async () => {
+      const res = await getSubmission(token,submissionId);
+      setDetails(res.data);
+    }
+
+    getDetails();
+  },[token,submissionId]);
+
+  useEffect(()=>{
+    if(details != undefined){
+      setDataLoad(false);
+    }
+  })
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -120,6 +147,9 @@ const MainEditor = () => {
         return () => clearTimeout(timer);
       }
     } else if (focusChangeCount > focusChangeLimit) {
+      async () => {
+        await updateLock(token,{submissionId:submissionId,key:true});
+      }
       showToast("Redirecting", "You've exceeded the focus change limit", "error");
       setTimeout(() => {
         navigate("/student");
@@ -215,26 +245,15 @@ const MainEditor = () => {
       return;
     }
     setIsSubmitting(true);
-    setExecutionResult(null);
     setIsError(false);
     setActiveTab("results");
 
     try {
       const sourceCode = editorRef.current.getValue();
-      const submission = await submitCode(language, sourceCode);
-
-      if (!submission.success) {
-        setIsError(true);
-        setExecutionResult(submission.details || submission.message);
-        showToast(submission.message, true);
-      } else {
-        setExecutionResult({
-          summary: submission.message,
-          details: submission.results,
-          executionTime: submission.executionTime,
-        });
-        showToast(submission.message, !submission.passed);
-      }
+      console.log(sourceCode)
+      console.log(output)
+      await submitAssignment(token,{id:submissionId,source:sourceCode,result:output});
+      showToast("Success","Assignment Submitted successfully!",'success');
     } catch (error) {
       setIsError(true);
       setExecutionResult(`Error: ${error.message}`);
@@ -245,6 +264,12 @@ const MainEditor = () => {
   };
 
   return (
+    dataLoad 
+    ? 
+    <Container fluid alignContent={'center'} bgColor={'white'} h={'100vh'}>
+      <Center><Loader/></Center>
+    </Container>
+    :
     <div style={{
       backgroundColor: currentTheme.bg,
       color: currentTheme.text,
@@ -278,12 +303,12 @@ const MainEditor = () => {
                   fontSize: '1.25rem',
                   fontWeight: 600,
                   color: currentTheme.text
-                }}>Sum of Infinite Array</h2>
+                }}>{details.assignment.title}</h2>
                 <span style={{
                   fontSize: '0.875rem',
                   color: currentTheme.text,
                   opacity: 0.8
-                }}>Moderate</span>
+                }}>{/*Moderate*/}</span>
               </div>
 
               <div style={{
@@ -298,13 +323,7 @@ const MainEditor = () => {
                   color: currentTheme.text,
                   marginBottom: '0.5rem'
                 }}>
-                  <strong>Problem Statement:</strong> Given an array "A" of N integers and you have also defined the new array "B" as a concatenation of array "A" for an infinite number of times. For example, if the given array "A" is [1,2,3] then, infinite array "B" is [1,2,3,1,2,3,1,2,3,...].
-                </p>
-                <p style={{
-                  fontSize: '0.875rem',
-                  color: currentTheme.text
-                }}>
-                  Your task is to find the sum of the subarray from index "L" to "R" (both inclusive) in the infinite array "B" for each query. Note: The value of the sum can be very large, return the answer as modulus 10^9+7.
+                  <strong>Problem Statement:</strong> {details.assignment.description}
                 </p>
               </div>
 
@@ -321,11 +340,7 @@ const MainEditor = () => {
                   paddingLeft: '1.25rem',
                   marginBottom: '1rem'
                 }}>
-                  <li>1 ≤ T ≤ 100</li>
-                  <li>1 ≤ N ≤ 10^4</li>
-                  <li>1 ≤ A[i] ≤ 10^9</li>
-                  <li>1 ≤ Q ≤ 10^4</li>
-                  <li>1 ≤ L ≤ R ≤ 10^18</li>
+                  {details.assignment.constraints}
                 </ul>
               </div>
 
@@ -347,14 +362,14 @@ const MainEditor = () => {
                     color: currentTheme.text,
                     marginBottom: '0.25rem'
                   }}>
-                    <strong>Input:</strong> A = [1,2,3], Q = 2, queries = [[1,3], [4,6]]
+                     {details.assignment.example}
                   </p>
-                  <p style={{
+                  { /*<p style={{
                     fontSize: '0.875rem',
                     color: currentTheme.text
                   }}>
                     <strong>Output:</strong> [6, 6]
-                  </p>
+                  </p>*/}
                 </div>
               </div>
             </div>
@@ -644,6 +659,7 @@ const MainEditor = () => {
       </div>
       <ToastContainer />
     </div>
+
   );
 };
 

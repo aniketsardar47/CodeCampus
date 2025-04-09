@@ -9,6 +9,7 @@ import CreateAssignment from "./pages/Teacher/CreateAssignment";
 import LandingPage from "./pages/Landing";
 import ViewSubmissions from "./pages/Teacher/ViewSubmissions";
 import MainEditor from "./pages/Editor/Main_Editor";
+import SubmissionDetails from "./pages/Teacher/SubmissionDetails";
 
 
 
@@ -33,6 +34,7 @@ function App() {
      <Route element={<TeachDash/>} path='/teacher'/>
      <Route element={<CreateAssignment/>} path='/add-assignment'/>
      <Route element={<ViewSubmissions />} path="/submission/:assignmentid"  />
+     <Route element={<SubmissionDetails />} path="/SubmissionDetails"  />
 
    </Route>
    

@@ -3,8 +3,10 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { fetchUserData } from "@/api/user";
 import { LogOut, BookOpen, User, ChevronRight, Clock, AlertCircle, CheckCircle } from "lucide-react";
-import { object } from "prop-types";
 import Loader from "@/components/Loader";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { showToast } from "../Editor/showToaster";
 import { Center, Container } from "@chakra-ui/react";
 import { fetchBothAssignments } from "@/api/user";
 
@@ -67,8 +69,13 @@ const StudDash = () => {
 
   const navigate = useNavigate();
 
-  const handleGoToEditor = (submissionId) => {
+  const handleGoToEditor = (submissionId,lock) => {
+    if(!lock){
     navigate(`/editor/:${submissionId}`);
+    }
+    else{
+      showToast("Warning", "Assignment is locked, contact your Teacher!", "warning");
+    }
   };
 
   const toggleView = () => {
@@ -197,7 +204,7 @@ const StudDash = () => {
                 <motion.button
                   style={styles.cardButton}
                   whileHover={{ backgroundColor: "#111" }}
-                  onClick={() => handleGoToEditor(practical._id)}
+                  onClick={() => handleGoToEditor(practical._id,practical.lock)}
                 >
                   {showCompleted ? 'View Assignment' : 'Open Assignment'}
                 </motion.button>
@@ -209,6 +216,7 @@ const StudDash = () => {
           <Center><Loader /></Center>
         </Container>
       }
+      <ToastContainer/>
     </div>
 };
 

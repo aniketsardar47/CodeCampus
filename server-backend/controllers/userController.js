@@ -26,14 +26,15 @@ const fetchSubmissions = async (req,res) => {
     }
 }
 
+
 const addAssignment = async (req,res)=> {
-    const {assignor,teacher,title,description,due} = req.body;
+    const {assignor,teacher,title,description,constraints,example,language,due,maxMarks} = req.body;
     try{
         const assignExists = await Assignment.findOne({title});
         if(assignExists){
             res.status(400).json({ message: "Assignment already exists" });
         }
-        const new_ass = await Assignment.create({assignor,teacher,title,description,due});
+        const new_ass = await Assignment.create({assignor,teacher,title,description,constraints,example,language,due,maxMarks});
 
         const students = await User.find({role:"Student"});
         const submissions = students.map(student=> ({
@@ -79,11 +80,27 @@ const pending_completed_Assignments = async (req,res) => {
     }
 }
 
+const getSubmission = async (req,res) => {
+    try{
+        const submissionId = req.query.id;
+
+        if(submissionId == null || submissionId == undefined){
+            res.status(500).json({message:"Invalid id!"});
+            return;
+        }
+        const data = await Submission.findById(submissionId).populate('assignment').populate('student');
+        res.json(data);
+    }catch(error){
+        console.log("Error fetching submission: ",error);
+        res.status(500).json({message:"Server error!"});
+    }   
+}
+
 const updateLock = async (req,res) => {
     try{
         let {submissionId,key} = req.body;
 
-        if (!submissionId) {
+        if (submissionId == null || submissionId == undefined) {
             return res.status(400).json({ message: "Invalid ID" });
           }
 
@@ -105,5 +122,21 @@ const updateLock = async (req,res) => {
     }
 }
 
+const submitAssignment = async (req,res) => {
+    try{
+        const {id,source,result} = req.body;
+        if (id == null || id == undefined) {
+            return res.status(400).json({ message: "Invalid ID" });
+        }
+        await Submission.updateOne({_id:id},{$set: {code:source,output:result,status:true}});
+        res.status(201).json({
+            message: "Assignment submitted!"
+        })
+    }catch(error){
+        console.log("Error updating: ",error);
+        res.status(500).json({error: "Internal Server Error"})
+    }
+}
 
-module.exports = {userDetails,addAssignment,fetchAssignments,fetchSubmissions,pending_completed_Assignments,updateLock};
+
+module.exports = {userDetails,addAssignment,fetchAssignments,fetchSubmissions,pending_completed_Assignments,updateLock,getSubmission,submitAssignment};

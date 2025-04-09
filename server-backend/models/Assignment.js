@@ -6,7 +6,11 @@ const assignmentSchema = new mongoose.Schema(
        teacher: {type: String, required: true},
        title : {type : String, required : true,unique:true},
        description : {type : String, required : true},
+       constraints : {type : String},
+       example : {type : String},
+       language : {type : String, required : true},       
        due: {type: Date, required:true},
+       maxMarks: {type:Number,required:true}
     },{timestamps:true}
 );
 

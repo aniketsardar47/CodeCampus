@@ -60,6 +60,22 @@ export const fetchPersonalDetails = async (id) =>{
     }
 };
 
+
+export const fetchBothAssignments = async (token) => {
+    try{
+        const res = await axios.get(`${API_URL}/pending_completed_Assignments`,{
+            method: "GET",
+            headers: {
+                Authorization : `${token}`
+            }
+        });
+        return res;
+    }catch(error){
+        console.error("Error fetching assignments: ",error);
+        throw error;
+    }
+}
+
 export const fetchSubmissions = async (token,assignment_id) => {
     try{
         const res = await axios.get(`${API_URL}/fetchSubmissions`,{
@@ -77,17 +93,48 @@ export const fetchSubmissions = async (token,assignment_id) => {
     }
 }
 
-export const fetchBothAssignments = async (token) => {
+export const getSubmission = async (token,submissionId) => {
     try{
-        const res = await axios.get(`${API_URL}/pending_completed_Assignments`,{
+        const res = await axios.get(`${API_URL}/getSubmission`,{
             method: "GET",
             headers: {
                 Authorization : `${token}`
+            },
+            params: {
+                id : submissionId,
             }
         });
         return res;
     }catch(error){
         console.error("Error fetching assignments: ",error);
+        throw error;
+    }
+}
+
+export const updateLock = async (token,data) => {
+    try{
+        await axios.post(`${API_URL}/updateLock`,data,{
+        method: "POST",
+        headers: {
+            Authorization: `${token}`
+        }
+    })
+    }catch(error){
+        console.error("Error updating lock: ",error);
+        throw error;
+    }
+}
+
+export const submitAssignment = async (token,data) => {
+    try{
+        await axios.post(`${API_URL}/submitAssignment`,data,{
+            method: "POST",
+            headers : {
+                Authorization: `${token}`
+            }
+        })
+    }catch(error){
+        console.error("Error submitting assignment: ",error);
         throw error;
     }
 }

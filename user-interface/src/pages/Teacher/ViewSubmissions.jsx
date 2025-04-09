@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useParams, useNavigate} from "react-router-dom";
+import { useParams, useNavigate,Link} from "react-router-dom";
 import { ChevronLeft, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { Flex, Portal, Select, Spacer, createListCollection,Container,Center } from "@chakra-ui/react"
 import { motion } from "framer-motion";
@@ -37,6 +37,10 @@ const ViewSubmissions = () => {
       setLoading(false);
     }
   })
+
+  const handleNavigate = () => {
+    navigate('/SubmissionDetails');
+  }
 
 
   const getStatusIcon = (status) => {
@@ -143,7 +147,8 @@ const ViewSubmissions = () => {
               <td style={styles.td}>
                 <button
                   style={styles.viewButton}
-                  onClick={""}
+                  onClick={() => handleNavigate}
+
                 >
                   View
                 </button>
@@ -152,7 +157,6 @@ const ViewSubmissions = () => {
           ))
            :
            submissions.filter((ob)=>{
-            console.log(ob.status == true ? ob : "")
             return ob.status == true
            }).map((assignment) => (
             <tr key={assignment._id} style={styles.tableRow}>

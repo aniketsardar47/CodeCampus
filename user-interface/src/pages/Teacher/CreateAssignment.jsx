@@ -1,36 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Toaster, toaster } from '@/components/ui/toaster';
-import { ArrowLeft, Calendar } from 'lucide-react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { showToast } from "../Editor/showToaster";
+import { ArrowLeft, Calendar, ChevronDown } from 'lucide-react';
 import { addAssignment, fetchUserData } from '@/api/user';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const CreateAssignment = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
+  const [startDate, setStartDate] = useState(new Date());
+  const [isDateValid, setIsDateValid] = useState(true);
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     dueDate: '',
-    maxMarks: 100
+    maxMarks: 100,
+    constraints: '',
+    example: '',
+    language: 'javascript'
   });
+
+  const languages = [
+    { value: 'javascript', label: 'JavaScript' },
+    { value: 'python', label: 'Python' },
+    { value: 'java', label: 'Java' },
+    { value: 'c', label: 'C' },
+    { value: 'cpp', label: 'C++' },
+  ];
+
+  const handleDateChange = (date) => {
+    setStartDate(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const isValid = date >= today;
+    setIsDateValid(isValid);
+    
+    if (isValid) {
+      const formattedDate = date.toISOString().split('T')[0];
+      setFormData({...formData, dueDate: formattedDate});
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try{
+    
+    if (!isDateValid) {
+      showToast("Invalid", "Date must be today or in future!", "error");
+      return;
+    }
+
+    try {
       const teacher = await fetchUserData(token);
-      await addAssignment({assignor:teacher._id,teacher:teacher.name,title:formData.title,description:formData.description,due:formData.dueDate},token);
-      alert("Assignment added successfully!");
-    }catch(error){
-        console.log("Error: ",error);
-        alert("Something went wrong, try again..");
+      await addAssignment({
+        assignor: teacher._id,
+        teacher: teacher.name,
+        title: formData.title,
+        description: formData.description,
+        constraints: formData.constraints,
+        example: formData.example,
+        language: formData.language,
+        due: formData.dueDate,
+        maxMarks: formData.maxMarks
+      }, token);
+      
+      showToast("Success", "Assignment added successfully!", "success");
+      setTimeout(() => navigate('/teacher'), 1500);
+    } catch (error) {
+      console.log("Error: ", error);
+      showToast("Error", "Something went wrong!", "error");
     }
   };
 
   return (
     <div style={styles.container}>
-      <Toaster />
+      
       <motion.button
         style={styles.backButton}
         onClick={() => navigate('/teacher')}
@@ -44,7 +92,7 @@ const CreateAssignment = () => {
 
       <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.formGroup}>
-          <label style={styles.label}>Assignment Title</label>
+          <label style={styles.label}>Assignment Title*</label>
           <input
             type="text"
             value={formData.title}
@@ -56,7 +104,7 @@ const CreateAssignment = () => {
         </div>
 
         <div style={styles.formGroup}>
-          <label style={styles.label}>Problem Statement</label>
+          <label style={styles.label}>Problem Statement*</label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({...formData, description: e.target.value})}
@@ -66,18 +114,43 @@ const CreateAssignment = () => {
           />
         </div>
 
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Constraints</label>
+          <textarea
+            value={formData.constraints}
+            onChange={(e) => setFormData({...formData, constraints: e.target.value})}
+            style={{...styles.input, minHeight: '80px'}}
+            placeholder="Add any constraints or requirements"
+          />
+        </div>
+
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Example</label>
+          <textarea
+            value={formData.example}
+            onChange={(e) => setFormData({...formData, example: e.target.value})}
+            style={{...styles.input, minHeight: '100px', fontFamily: "'Courier New', monospace"}}
+            placeholder="Provide example input/output"
+          />
+        </div>
+
         <div style={styles.formRow}>
           <div style={styles.formGroup}>
-            <label style={styles.label}>Due Date*</label>
-            <div style={styles.dateInputContainer}>
-              <Calendar size={18} style={styles.dateIcon} />
-              <input
-                type="date"
-                value={formData.dueDate}
-                onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
-                style={styles.dateInput}
+            <label style={styles.label}>Programming Language*</label>
+            <div style={styles.selectContainer}>
+              <select
+                value={formData.language}
+                onChange={(e) => setFormData({...formData, language: e.target.value})}
+                style={styles.select}
                 required
-              />
+              >
+                {languages.map((lang) => (
+                  <option key={lang.value} value={lang.value}>
+                    {lang.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={18} style={styles.selectIcon} />
             </div>
           </div>
 
@@ -94,15 +167,72 @@ const CreateAssignment = () => {
           </div>
         </div>
 
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Due Date*</label>
+          <div style={styles.datePickerContainer}>
+            <Calendar size={18} style={styles.dateIcon} />
+            <DatePicker
+              selected={startDate}
+              onChange={handleDateChange}
+              minDate={new Date()}
+              dateFormat="MMMM d, yyyy"
+              placeholderText="Select due date"
+              className="date-picker-input"
+              wrapperClassName="date-picker-wrapper"
+              required
+            />
+          </div>
+          {!isDateValid && (
+            <p style={styles.errorText}>Due date must be today or in the future</p>
+          )}
+        </div>
+
         <motion.button
           type="submit"
           style={styles.submitButton}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
+          disabled={!isDateValid}
         >
           Create Assignment
         </motion.button>
       </form>
+
+      <style jsx global>{`
+        .date-picker-wrapper {
+          width: 100%;
+        }
+        .date-picker-input {
+          width: 100%;
+          padding: 12px 12px 12px 40px;
+          border-radius: 8px;
+          border: 1px solid #E5E7EB;
+          font-size: 14px;
+          background-color: #F9FAFB;
+          color: black;
+        }
+        .react-datepicker {
+          font-family: 'Inter', sans-serif;
+          border: 1px solid #E5E7EB;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .react-datepicker__header {
+          background-color: #F9FAFB;
+          border-bottom: 1px solid #E5E7EB;
+        }
+        .react-datepicker__current-month,
+        .react-datepicker__day-name {
+          color: #374151;
+          font-weight: 500;
+        }
+        .react-datepicker__day--selected {
+          background-color: #4F46E5;
+        }
+        .react-datepicker__day--keyboard-selected {
+          background-color: #4F46E5;
+        }
+      `}</style>
+      <ToastContainer />
     </div>
   );
 };
@@ -145,7 +275,8 @@ const styles = {
     width: '100%'
   },
   formGroup: {
-    marginBottom: '20px'
+    marginBottom: '20px',
+    position: 'relative'
   },
   formRow: {
     display: 'flex',
@@ -175,7 +306,32 @@ const styles = {
       borderColor: '#4F46E5'
     },
   },
-  dateInputContainer: {
+  selectContainer: {
+    position: 'relative'
+  },
+  select: {
+    width: '100%',
+    padding: '12px 40px 12px 12px',
+    borderRadius: '8px',
+    border: '1px solid #E5E7EB',
+    fontSize: '14px',
+    backgroundColor: '#F9FAFB',
+    color: "black",
+    appearance: 'none',
+    '&:focus': {
+      outline: 'none',
+      borderColor: '#4F46E5'
+    },
+  },
+  selectIcon: {
+    position: 'absolute',
+    right: '12px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: '#6B7280',
+    pointerEvents: 'none'
+  },
+  datePickerContainer: {
     position: 'relative',
     display: 'flex',
     alignItems: 'center'
@@ -183,16 +339,8 @@ const styles = {
   dateIcon: {
     position: 'absolute',
     left: '12px',
-    color: '#6B7280'
-  },
-  dateInput: {
-    color: 'black',
-    width: '100%',
-    padding: '12px 12px 12px 40px',
-    borderRadius: '8px',
-    border: '1px solid #E5E7EB',
-    fontSize: '14px',
-    backgroundColor: '#F9FAFB'
+    color: '#6B7280',
+    zIndex: 1
   },
   submitButton: {
     backgroundColor: '#4F46E5',
@@ -204,7 +352,16 @@ const styles = {
     fontSize: '16px',
     fontWeight: '500',
     marginTop: '20px',
-    width: '100%'
+    width: '100%',
+    '&:disabled': {
+      backgroundColor: '#9CA3AF',
+      cursor: 'not-allowed'
+    }
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: '12px',
+    marginTop: '4px'
   }
 };
 
