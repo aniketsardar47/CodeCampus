@@ -30,7 +30,6 @@ const StudDash = () => {
         if (!token) {
           return;
         }
-        console.log(token);
         const data = await fetchUserData(token);
         setUserdet(data);
       } catch (error) {
@@ -44,11 +43,8 @@ const StudDash = () => {
           return;
         }
         const res = await fetchBothAssignments(token);
-        console.log(res);
         setPendingPracticals(res.data.pending);
         setCompletedPracticals(res.data.completed);
-        console.log(pendingPracticals);
-        console.log(completedPracticals);
       } catch (error) {
         console.error("Failed to load assignments:", error);
       }

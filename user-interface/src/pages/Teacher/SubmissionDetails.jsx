@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Lock, Unlock, ArrowLeft, CheckCircle2, XCircle, Clock } from 'lucide-react';
-import { Prism as SyntaxHighlighter } from 'prism-react-renderer';
+import { Prism } from 'prism-react-renderer';
 //import { getSubmissionDetails, toggleSubmissionLock } from '@/api/submissions';
 import moment from 'moment';
+import { getSubmission, updateLock } from '@/api/user';
+import { Center, Container } from '@chakra-ui/react';
+import Loader from '@/components/Loader';
+import { use } from 'react';
 
 const SubmissionDetails = () => {
-  const { submissionId } = useParams();
+  let { id } = useParams();
+  const submissionId = id.replace(':','');
+  const token = localStorage.getItem('token');
   const navigate = useNavigate();
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,8 +21,8 @@ const SubmissionDetails = () => {
   useEffect(() => {
     const fetchSubmission = async () => {
       try {
-        const data = await getSubmissionDetails(submissionId);
-        setSubmission(data);
+        const res = await getSubmission(token,submissionId);
+        setSubmission(res.data);
       } catch (error) {
         console.error('Failed to fetch submission details:', error);
       } finally {
@@ -27,11 +33,16 @@ const SubmissionDetails = () => {
     fetchSubmission();
   }, [submissionId]);
 
+  useEffect(() => {
+    console.log("Updated submission:", submission);
+  }, [submission]);
+
+  
   const handleToggleLock = async () => {
     setLockLoading(true);
     try {
-      const updatedSubmission = await toggleSubmissionLock(submissionId);
-      setSubmission(updatedSubmission);
+      const updatedSubmission = await updateLock(token,{submissionId:submissionId,key:submission.lock ? false : true});
+     setSubmission({...updatedSubmission.data});
     } catch (error) {
       console.error('Failed to update lock status:', error);
     } finally {
@@ -39,29 +50,35 @@ const SubmissionDetails = () => {
     }
   };
 
+  const CodeBlock = ({ code, language }) => (
+    <div style={{
+      backgroundColor: '#1d1f21',
+      borderRadius: '6px',
+      padding: '16px',
+      overflow: 'auto',
+      fontSize: '14px',
+      lineHeight: '1.5',
+      marginTop: '8px'
+    }}>
+      <pre style={{ margin: 0 }}>
+        <code style={{
+          fontFamily: "'Roboto Mono', monospace",
+          display: 'block',
+          color: '#c5c8c6'
+        }}>
+          {code}
+        </code>
+      </pre>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh'
-      }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          border: '4px solid #f3f3f3',
-          borderTop: '4px solid #4F46E5',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }}></div>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
+      <Container fluid h={'100vh'} bg={'white'} alignContent={'center'}>
+        <Center>
+          <Loader/>
+        </Center>
+      </Container>
     );
   }
 
@@ -78,6 +95,11 @@ const SubmissionDetails = () => {
   }
 
   return (
+    <div style={{
+      maxWidth: '100%',
+      height: '100vh',
+      backgroundColor: '#f3f4f6'
+    }}>
     <div style={{
       maxWidth: '1200px',
       margin: '0 auto',
@@ -136,7 +158,7 @@ const SubmissionDetails = () => {
             <Unlock size={16} />
           )}
           <span style={{ fontSize: '14px', fontWeight: '500' }}>
-            {submission.isLocked ? 'Locked' : 'Unlocked'}
+            {submission.lock ? 'Locked' : 'Unlocked'}
           </span>
         </div>
       </div>
@@ -146,7 +168,7 @@ const SubmissionDetails = () => {
         borderRadius: '8px',
         padding: '20px',
         marginBottom: '24px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)'
       }}>
         <h2 style={{
           fontSize: '18px',
@@ -190,20 +212,9 @@ const SubmissionDetails = () => {
               color: '#6b7280',
               marginBottom: '4px'
             }}>Branch:</label>
-            <p style={{ margin: 0, color: '#111827' }}>{submission.student.branch}</p>
+            <p style={{ margin: 0, color: '#111827' }}>{submission.student.department}</p>
           </div>
-          
-          <div>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: '#6b7280',
-              marginBottom: '4px'
-            }}>Roll Number:</label>
-            <p style={{ margin: 0, color: '#111827' }}>{submission.student.rollNumber}</p>
-          </div>
-          
+              
           <div>
             <label style={{
               display: 'block',
@@ -213,7 +224,7 @@ const SubmissionDetails = () => {
               marginBottom: '4px'
             }}>Submission Date:</label>
             <p style={{ margin: 0, color: '#111827' }}>
-              {moment(submission.submittedAt).format('MMMM Do YYYY, h:mm:ss a')}
+              {submission.status?  moment(submission.updatedAt).format('MMMM Do YYYY, h:mm:ss a'): "Not yet submitted"}
             </p>
           </div>
           
@@ -242,7 +253,7 @@ const SubmissionDetails = () => {
                 color: submission.status === 'passed' ? '#166534' : 
                       submission.status === 'failed' ? '#b91c1c' : '#d97706'
               }}>
-                {submission.status}
+                {submission.status ? "Completed" : "Pending"}
               </span>
             </div>
           </div>
@@ -259,7 +270,7 @@ const SubmissionDetails = () => {
           backgroundColor: 'white',
           borderRadius: '8px',
           padding: '20px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          boxShadow: '0 1px 10px rgba(0,0,0,0.1)',
           overflow: 'hidden'
         }}>
           <h2 style={{
@@ -268,58 +279,14 @@ const SubmissionDetails = () => {
             marginBottom: '16px',
             color: '#111827'
           }}>Source Code</h2>
-          <div style={{
-            borderRadius: '6px',
-            overflow: 'auto',
-            fontSize: '14px'
-          }}>
-            <SyntaxHighlighter
-              language={submission.language}
-              style={{
-                plain: {
-                  color: '#c5c8c6',
-                  backgroundColor: '#1d1f21',
-                },
-                styles: [
-                  {
-                    types: ['comment'],
-                    style: {
-                      color: 'rgb(97, 97, 97)',
-                    },
-                  },
-                  {
-                    types: ['string', 'number', 'builtin', 'variable'],
-                    style: {
-                      color: 'rgb(152, 195, 121)',
-                    },
-                  },
-                  {
-                    types: ['keyword', 'operator'],
-                    style: {
-                      color: 'rgb(197, 134, 192)',
-                    },
-                  },
-                  {
-                    types: ['function'],
-                    style: {
-                      color: 'rgb(97, 174, 238)',
-                    },
-                  },
-                ],
-              }}
-              showLineNumbers
-              wrapLines
-            >
-              {submission.code}
-            </SyntaxHighlighter>
-          </div>
+           <CodeBlock code={submission.code} language={submission.assignment.language} />
         </div>
 
         <div style={{
           backgroundColor: 'white',
           borderRadius: '8px',
           padding: '20px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          boxShadow: '0 1px 10px rgba(0,0,0,0.1)'
         }}>
           <h2 style={{
             fontSize: '18px',
@@ -359,13 +326,13 @@ const SubmissionDetails = () => {
             padding: '10px 16px',
             borderRadius: '6px',
             border: 'none',
-            backgroundColor: submission.isLocked ? '#4F46E5' : '#ef4444',
+            backgroundColor: submission.lock ? '#4F46E5' : '#ef4444',
             color: 'white',
             fontWeight: '500',
             cursor: 'pointer',
             transition: 'all 0.2s',
             ':hover': {
-              backgroundColor: submission.isLocked ? '#4338ca' : '#dc2626'
+              backgroundColor: submission.lock ? '#4338ca' : '#dc2626'
             },
             ':disabled': {
               opacity: 0.7,
@@ -382,14 +349,15 @@ const SubmissionDetails = () => {
               borderRadius: '50%',
               animation: 'spin 1s linear infinite'
             }}></div>
-          ) : submission.isLocked ? (
+          ) : submission.lock ? (
             <Unlock size={16} />
           ) : (
             <Lock size={16} />
           )}
-          {submission.isLocked ? 'Unlock Submission' : 'Lock Submission'}
+          {submission.lock ? 'Unlock Submission' : 'Lock Submission'}
         </button>
       </div>
+    </div>
     </div>
   );
 };

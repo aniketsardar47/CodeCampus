@@ -36,7 +36,7 @@ function App() {
      <Route element={<TeachDash/>} path='/teacher'/>
      <Route element={<CreateAssignment/>} path='/add-assignment'/>
      <Route element={<ViewSubmissions />} path="/submission/:assignmentid"  />
-     <Route element={<SubmissionDetails />} path="/SubmissionDetails"  />
+     <Route element={<SubmissionDetails />} path="/SubmissionDetails/:id"  />
 
    </Route>
    

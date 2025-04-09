@@ -24,7 +24,6 @@ const TeacherDashboard = () => {
         if (!token) return;
         const data = await fetchUserData(token);
         setUserdet(data);
-        console.log(data);
       } catch (error) {
         console.error("Failed to load user data:", error);
       }

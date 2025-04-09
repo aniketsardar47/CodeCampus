@@ -110,11 +110,11 @@ const updateLock = async (req,res) => {
           }
 
         if(submission.lock != key){
-        await Submission.updateOne({_id:submission._id},{$set:{lock: key}})
+        const data = await Submission.findOneAndUpdate({_id:submission._id},{$set:{lock: key}},{new:true}).populate('assignment').populate('student');
+        
+        res.status(200).json(data);
+        console.log("Lock Updated!")
         }
-        res.status(201).json({
-            message: "Lock updated!"
-        });
     }
     catch(error){
         console.log("Error updating: ",error);

@@ -113,12 +113,13 @@ export const getSubmission = async (token,submissionId) => {
 
 export const updateLock = async (token,data) => {
     try{
-        await axios.post(`${API_URL}/updateLock`,data,{
+        const res = await axios.post(`${API_URL}/updateLock`,data,{
         method: "POST",
         headers: {
             Authorization: `${token}`
         }
-    })
+    });
+    return res;
     }catch(error){
         console.error("Error updating lock: ",error);
         throw error;

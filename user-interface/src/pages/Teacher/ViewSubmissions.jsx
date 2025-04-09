@@ -15,14 +15,11 @@ const ViewSubmissions = () => {
 
   const token = localStorage.getItem('token');
   const decoded_id = decodeURIComponent(assignmentid.replace(/\s+/g, '-'));
-  console.log(decoded_id);
 
   useEffect(() => {
     const getSubmissions = async () => {
-      console.log(token);
       try {
         const sub = await fetchSubmissions(token,decoded_id);
-        console.log(sub);
         setSubmissions(sub.data);
       } catch (error) {
         console.log("Error fetching data, ", error);
@@ -38,8 +35,8 @@ const ViewSubmissions = () => {
     }
   })
 
-  const handleNavigate = () => {
-    navigate('/SubmissionDetails/');
+  const handleNavigate = (id) => {
+    navigate(`/SubmissionDetails/:${id}`);
   }
 
 
@@ -147,7 +144,7 @@ const ViewSubmissions = () => {
               <td style={styles.td}>
                 <button
                   style={styles.viewButton}
-                  onClick={""}
+                  onClick={() => handleNavigate(assignment._id)}
 
                 >
                   View
@@ -165,14 +162,14 @@ const ViewSubmissions = () => {
               <td style={styles.td}>
                 <div style={styles.statusCell}>
                   {getStatusIcon("Completed")}
-                  <span>Pending</span>
+                  <span>Completed</span>
                 </div>
               </td>
-              <td style={styles.td}>{assignment.submission_date != null ? assignment.submission_date.substring(0,10) : "NA"}</td>
+              <td style={styles.td}>{assignment.updatedAt.substring(0,10)}</td>
               <td style={styles.td}>
                 <button
                   style={styles.viewButton}
-                   onClick={() => handleNavigate()}
+                   onClick={() => handleNavigate(assignment._id)}
                 >
                   View
                 </button>
