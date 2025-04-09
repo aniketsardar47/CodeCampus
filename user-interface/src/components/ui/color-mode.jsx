@@ -1,3 +1,5 @@
+'use client'
+
 import { ClientOnly, IconButton, Skeleton, Span } from '@chakra-ui/react'
 import { ThemeProvider, useTheme } from 'next-themes'
 

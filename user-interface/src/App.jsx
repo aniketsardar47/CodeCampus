@@ -9,12 +9,14 @@ import CreateAssignment from "./pages/Teacher/CreateAssignment";
 import LandingPage from "./pages/Landing";
 import ViewSubmissions from "./pages/Teacher/ViewSubmissions";
 import MainEditor from "./pages/Editor/Main_Editor";
+import SubmissionDetails from "./pages/Teacher/SubmissionDetails";
 
 
 
 
 function App() {
   return (
+
    <BrowserRouter>
    <Routes>
     <Route element={<LandingPage/>} path="/" />
@@ -26,6 +28,7 @@ function App() {
     {/* Student Routes */}
    <Route element={<ProtectedRoute allowedRole={['Student']}/>}>
      <Route element={<StudDash/>} path='/student'/>
+     <Route element={<MainEditor/>} path='/editor/:submissionId' />
    </Route>
 
      {/* Teacher Routes */}
@@ -33,11 +36,13 @@ function App() {
      <Route element={<TeachDash/>} path='/teacher'/>
      <Route element={<CreateAssignment/>} path='/add-assignment'/>
      <Route element={<ViewSubmissions />} path="/submission/:assignmentid"  />
+     <Route element={<SubmissionDetails />} path="/SubmissionDetails"  />
 
    </Route>
    
    </Routes>
    </BrowserRouter>
+
   )
 }
 

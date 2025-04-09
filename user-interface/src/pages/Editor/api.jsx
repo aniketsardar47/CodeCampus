@@ -22,7 +22,7 @@ export const fetchProblemById = async (id) => {
 };
 
 
-export const executeCode = async (language, sourceCode, input = "2 3") => {
+export const executeCode = async (language, sourceCode, input) => {
     fetchProblemById(language, sourceCode, input);
     try {
     if (!LANGUAGE_VERSIONS[language]) {
