@@ -141,7 +141,7 @@ const MainEditor = () => {
           `Please stay focused! ${remainingAttempts} ${remainingAttempts === 1 ? 'attempt' : 'attempts'} remaining before you'll be redirected.`,
           "warning"
         );
-        setIsWarningShown(true);
+        // setIsWarningShown(true);
 
         const timer = setTimeout(() => setIsWarningShown(false), 5000);
         return () => clearTimeout(timer);
@@ -421,6 +421,7 @@ const MainEditor = () => {
                   <option value="cpp">C++</option>
                   <option value="java">Java</option>
                   <option value="python">Python</option>
+                
                 </select>
               </div>
               <div style={{
