@@ -148,6 +148,7 @@ const MainEditor = () => {
         return () => clearTimeout(timer);
       }
     } else if (focusChangeCount > focusChangeLimit) {
+      console.log("excedd: ",focusChangeCount);
       async () => {
         await updateLock(token,{submissionId:submissionId,key:true});
       }
