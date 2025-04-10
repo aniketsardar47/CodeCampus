@@ -43,7 +43,7 @@ const MainEditor = () => {
   const navigate = useNavigate();
   const [focusChangeCount, setFocusChangeCount] = useState(0);
   const [isWarningShown, setIsWarningShown] = useState(false);
-  const focusChangeLimit = 50;
+  const focusChangeLimit = 5;
 
   const theme = {
     light: {
@@ -129,11 +129,12 @@ const MainEditor = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
     };
-  }, []);
+  }, [focusChangeCount]);
 
   useEffect(() => {
     if (focusChangeCount > 0 && focusChangeCount <= focusChangeLimit) {
       const remainingAttempts = focusChangeLimit - focusChangeCount;
+      console.log(remainingAttempts);
 
       if (!isWarningShown) {
         showToast(
@@ -147,13 +148,14 @@ const MainEditor = () => {
         return () => clearTimeout(timer);
       }
     } else if (focusChangeCount > focusChangeLimit) {
+      console.log("excedd: ",focusChangeCount);
       async () => {
         await updateLock(token,{submissionId:submissionId,key:true});
       }
       showToast("Redirecting", "You've exceeded the focus change limit", "error");
       setTimeout(() => {
         navigate("/student");
-      }, 2000);
+      }, 5000);
     }
   }, [focusChangeCount, focusChangeLimit, isWarningShown, navigate]);
 
