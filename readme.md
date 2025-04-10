@@ -1,12 +1,9 @@
----
-
 # CodeCampus
 
 **CodeCampus** is an online coding platform that helps streamline the process of managing and submitting coding assignments between teachers and students.
 
 Teachers can upload practical assignments, and students can write, execute, and submit their code directly on the platform. It's designed for academic environments to facilitate interactive learning and automated evaluation of coding tasks.
 
----
 
 ## ✨ Features
 
