@@ -136,7 +136,7 @@ const MainEditor = () => {
       const remainingAttempts = focusChangeLimit - focusChangeCount;
       console.log(remainingAttempts);
 
-      if (!isWarningShown) {
+     // if (!isWarningShown) {
         showToast(
           "Warning",
           `Please stay focused! ${remainingAttempts} ${remainingAttempts === 1 ? 'attempt' : 'attempts'} remaining before you'll be redirected.`,
@@ -144,9 +144,9 @@ const MainEditor = () => {
         );
         // setIsWarningShown(true);
 
-        const timer = setTimeout(() => setIsWarningShown(false), 5000);
-        return () => clearTimeout(timer);
-      }
+      //  const timer = setTimeout(() => setIsWarningShown(false), 5000);
+        //return () => clearTimeout(timer);
+      //}
     } else if (focusChangeCount > focusChangeLimit) {
       console.log("excedd: ",focusChangeCount);
       async () => {
