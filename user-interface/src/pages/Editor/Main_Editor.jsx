@@ -134,6 +134,7 @@ const MainEditor = () => {
   useEffect(() => {
     if (focusChangeCount > 0 && focusChangeCount <= focusChangeLimit) {
       const remainingAttempts = focusChangeLimit - focusChangeCount;
+      console.log(remainingAttempts);
 
       if (!isWarningShown) {
         showToast(
@@ -153,7 +154,7 @@ const MainEditor = () => {
       showToast("Redirecting", "You've exceeded the focus change limit", "error");
       setTimeout(() => {
         navigate("/student");
-      }, 2000);
+      }, 5000);
     }
   }, [focusChangeCount, focusChangeLimit, isWarningShown, navigate]);
 
