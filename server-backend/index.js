@@ -8,7 +8,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: 'https://code-campus-rho.vercel.app',
     credentials: true,
     methods: ['GET', 'POST','PUT', 'OPTIONS','DELETE'],
     allowedHeaders: ['Content-Type','Authorization']
@@ -27,9 +27,10 @@ app.use("/api/auth", authRoutes);
 const userRoute = require("./routes/userRoute");
 app.use("/api",userRoute);
 
+const PORT = process.env.PORT || 5001;
 
 mongoose.connect(process.env.MONGO_URI)
-.then(()=> app.listen(5001,()=>console.log("Server running successfully..")))
+.then(()=> app.listen(PORT,()=>console.log("Server running successfully..")))
 .catch((err)=>console.log(err));
 
 mongoose.connection.on("error", (err) => {

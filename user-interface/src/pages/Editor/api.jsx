@@ -21,7 +21,6 @@ export const fetchProblemById = async (id) => {
   }
 };
 
-
 export const executeCode = async (language, sourceCode, input) => {
     fetchProblemById(language, sourceCode, input);
     try {
