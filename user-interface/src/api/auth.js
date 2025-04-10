@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = "http://localhost:5001/api/auth";
+const API_URL = "https://codecampus-server-tp47.onrender.com/api/auth";
 
 export const register = async (userData) => {
     try{
