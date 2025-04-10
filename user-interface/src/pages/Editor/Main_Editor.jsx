@@ -43,7 +43,7 @@ const MainEditor = () => {
   const navigate = useNavigate();
   const [focusChangeCount, setFocusChangeCount] = useState(0);
   const [isWarningShown, setIsWarningShown] = useState(false);
-  const focusChangeLimit = 50;
+  const focusChangeLimit = 5;
 
   const theme = {
     light: {
@@ -129,7 +129,7 @@ const MainEditor = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
     };
-  }, []);
+  }, [focusChangeCount]);
 
   useEffect(() => {
     if (focusChangeCount > 0 && focusChangeCount <= focusChangeLimit) {
