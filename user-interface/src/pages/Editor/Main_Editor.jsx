@@ -132,7 +132,7 @@ const MainEditor = () => {
   }, [focusChangeCount]);
 
   useEffect(() => {
-    if (focusChangeCount > 0 && focusChangeCount <= focusChangeLimit) {
+    if (focusChangeCount > 0 && focusChangeCount < focusChangeLimit) {
       const remainingAttempts = focusChangeLimit - focusChangeCount;
       console.log(remainingAttempts);
 
