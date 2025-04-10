@@ -150,7 +150,9 @@ const MainEditor = () => {
     } else if (focusChangeCount > focusChangeLimit) {
       console.log("excedd: ",focusChangeCount);
       const lockAssigment =  async () => {
+        console.log("updating")
         await updateLock(token,{submissionId:submissionId,key:true});
+        console.log("updated")
       }
       lockAssigment()
       showToast("Redirecting", "You've exceeded the focus change limit", "error");
