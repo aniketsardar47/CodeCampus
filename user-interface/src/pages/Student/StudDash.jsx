@@ -79,11 +79,11 @@ const StudDash = () => {
   const navigate = useNavigate();
 
   const handleGoToEditor = (submissionId,lock,due) => {
-    if(!lock){
-    navigate(`/editor/:${submissionId}`);
-    }
-    else if(showCompleted){
+    if(showCompleted){
       showToast("Assignment Submitted!","",'information');
+    }
+    else if(!lock){
+      navigate(`/editor/:${submissionId}`);
     }
     else{
       const today = new Date();
