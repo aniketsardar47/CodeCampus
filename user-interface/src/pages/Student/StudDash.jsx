@@ -24,6 +24,19 @@ const StudDash = () => {
     navigate('/login');
   }
 
+  const handleAssignmentOpenText = (practical) => {
+    const today = new Date();
+    if(showCompleted){
+      return 'Completed';
+    }
+    else if (!showCompleted){
+      return 'View Assignment';
+    }
+    else if(practical.assignment.due > today){
+      return 'Expired';
+    }
+  }
+
   useEffect(() => {
     const getUserData = async () => {
       try {
@@ -65,12 +78,17 @@ const StudDash = () => {
 
   const navigate = useNavigate();
 
-  const handleGoToEditor = (submissionId,lock) => {
+  const handleGoToEditor = (submissionId,lock,due) => {
     if(!lock){
     navigate(`/editor/:${submissionId}`);
     }
+    else if(showCompleted){
+      showToast("Assignment Submitted!","",'information');
+    }
     else{
-      showToast("Warning", "Assignment is locked, contact your Teacher!", "warning");
+      const today = new Date();
+      const expire = due < today;
+      showToast("Warning", `Assignment is ${expire?'expired':'locked'}, contact your Teacher!`, "warning");
     }
   };
 
@@ -200,9 +218,9 @@ const StudDash = () => {
                 <motion.button
                   style={styles.cardButton}
                   whileHover={{ backgroundColor: "#111" }}
-                  onClick={() => handleGoToEditor(practical._id,practical.lock)}
+                  onClick={() => handleGoToEditor(practical._id,practical.lock,practical.assignment.due)}
                 >
-                  {showCompleted ? 'View Assignment' : 'Open Assignment'}
+                  {handleAssignmentOpenText(practical)}
                 </motion.button>
               </motion.div>
             ))}
